@@ -1,6 +1,6 @@
 # Welcome to Team5
 + Team include:
-  - Nguyen Ngoc Yen
+  - Danh Thi Ngoc Yen
   - Luong Anh Thu 
   - Huynh Nhut Duy
   - Tran Le Bang Tam
