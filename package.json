@@ -1,7 +1,7 @@
 {
   "name": "web-chat",
   "version": "1.0.0",
-  "description": "hello ",
+  "description": "",
   "main": "src/index.js",
   "scripts": {
     "formatCode": "lint-staged",
