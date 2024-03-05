@@ -1,7 +1,7 @@
 {
   "name": "web-chat",
   "version": "1.0.0",
-  "description": "con ga",
+  "description": "con ga a",
   "main": "src/index.js",
   "scripts": {
     "formatCode": "lint-staged",
