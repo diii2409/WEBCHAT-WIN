@@ -5,7 +5,7 @@ async function connect() {
   try {
     await mongoose
       .connect(
-        'mongodb+srv://dongho:dongho@cluster0.clh0zxc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
+        'mongodb+srv://dongho:dongho@cluster0.bjjftqg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
           useNewUrlParser: true,
           useUnifiedTopology: true,
       })

@@ -2,6 +2,12 @@ const path = require("path");
 const express = require("express");
 var methodOverride = require("method-override");
 const morgan = require("morgan");
+const cookieParser = require("cookie-parser");
+
+require('dotenv').config({
+  path: 'config.env'
+})
+
 const handlebars = require("express-handlebars").create({
   extname: "hbs",
   helpers: {
@@ -20,6 +26,7 @@ const db = require("./config/database");
 // app.use(morgan("combined"));
 
 app.use(express.static(path.join(__dirname, "public")));
+app.use(cookieParser())
 app.use(
   express.urlencoded({
     extended: true,
