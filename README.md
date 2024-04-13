@@ -1,12 +1,9 @@
-# Welcome to Team5
-+ Team include:
-  - Danh Thi Ngoc Yen
-  - Luong Anh Thu 
-  - Huynh Nhut Duy
-  - Tran Le Bang Tam
-  - Nguyen Dong Ho
-+ Our project: website chat. The website draws design inspiration from Zalo and Messenger, but due to time and resource constraints, it only focuses on messaging functionality.
-+ Our primary language: Javascript.
-+ Our technologies:  NodeJS, ExpressJS,Socketio, Handlebars, Vue.
+# React + Vite
 
-##Thank you for stopping by.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+# APP-CHAT-firebase
