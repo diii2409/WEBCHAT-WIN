@@ -88,6 +88,10 @@ const ButtonGroupStyled = styled.div`
 const MessageListStyled = styled.div`
 	max-height: 100%;
 	overflow-y: auto;
+	&:hover {
+		background-color: #f0f0f0;
+	}
+	border-radius: 8px;
 `;
 
 const WrapperStyled = styled.div`
@@ -374,14 +378,7 @@ export default function ChatWindow() {
 							{messages.map((mes) => (
 								<div
 									key={mes?.id}
-									onContextMenu={(e) => handleContextMenu(e, mes)}
-									style={{
-										backgroundColor:
-											selectedMessage?.id === mes.id
-												? "#f0f0f0"
-												: "transparent",
-										borderRadius: "8px",
-									}}>
+									onContextMenu={(e) => handleContextMenu(e, mes)}>
 									<Dropdown overlay={contextMenu} trigger={["contextMenu"]}>
 										<span>
 											<Message
