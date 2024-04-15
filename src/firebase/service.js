@@ -16,9 +16,26 @@ export const addDocument = async (collectionName, data) => {
 		console.error("Error adding document: ", error);
 	}
 };
+// tao keywords cho displayName, su dung cho search
 export const generateKeywords = (displayName) => {
-	let keywords = [displayName];
-	const fullName = displayName.split(" ").filter((word) => word);
+	// liet ke tat cac hoan vi. vd: name = ["David", "Van", "Teo"]
+	// => ["David", "Van", "Teo"], ["David", "Teo", "Van"], ["Teo", "David", "Van"],...
+	const name = displayName.split(" ").filter((word) => word);
+
+	const length = name.length;
+	let flagArray = [];
+	let result = [];
+	let stringArray = [];
+
+	/**
+	 * khoi tao mang flag false
+	 * dung de danh dau xem gia tri
+	 * tai vi tri nay da duoc su dung
+	 * hay chua
+	 **/
+	for (let i = 0; i < length; i++) {
+		flagArray[i] = false;
+	}
 
 	const createKeywords = (name) => {
 		const arrName = [];
@@ -30,9 +47,28 @@ export const generateKeywords = (displayName) => {
 		return arrName;
 	};
 
-	for (let i = 0; i < fullName.length; i++) {
-		const tem = createKeywords(fullName[i]);
-		keywords = [...keywords, ...tem];
+	function findPermutation(k) {
+		for (let i = 0; i < length; i++) {
+			if (!flagArray[i]) {
+				flagArray[i] = true;
+				result[k] = name[i];
+
+				if (k === length - 1) {
+					stringArray.push(result.join(" "));
+				}
+
+				findPermutation(k + 1);
+				flagArray[i] = false;
+			}
+		}
 	}
+
+	findPermutation(0);
+
+	const keywords = stringArray.reduce((acc, cur) => {
+		const words = createKeywords(cur);
+		return [...acc, ...words];
+	}, []);
+
 	return keywords;
 };

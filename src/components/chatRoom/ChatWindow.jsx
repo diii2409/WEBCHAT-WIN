@@ -1,5 +1,19 @@
-import { UploadOutlined, UserAddOutlined } from "@ant-design/icons";
-import { Alert, Avatar, Button, Form, Input, Spin, Tooltip } from "antd";
+import {
+	DeleteOutlined,
+	UploadOutlined,
+	UserAddOutlined,
+} from "@ant-design/icons";
+import {
+	Alert,
+	Avatar,
+	Button,
+	Dropdown,
+	Form,
+	Input,
+	Menu,
+	Spin,
+	Tooltip,
+} from "antd";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import moment from "moment";
@@ -102,11 +116,15 @@ export default function ChatWindow() {
 
 	const [inputValue, setInputValue] = useState("");
 	const [form] = Form.useForm();
-	const messageListRef = useRef(null);
+
 	const [isInputDefault, setIsInputDefault] = useState(true);
 	const [messageImgs, setMessageImgs] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const inputRef = useRef();
+
+	const [contextMenuVisible, setContextMenuVisible] = useState(false);
+
+	const [selectedMessageId, setSelectedMessageId] = useState(null);
 
 	const handleSetStationUInput = () => {
 		setIsInputDefault(!isInputDefault);
@@ -218,6 +236,43 @@ export default function ChatWindow() {
 
 	const messages = useFirestore("messages", condition);
 
+	const handleDragOver = (e) => {
+		e.preventDefault();
+	};
+	const handleDrop = (e) => {
+		e.preventDefault();
+		const fileList = Array.from(e.dataTransfer.files);
+		setMessageImgs(fileList, ...messageImgs);
+	};
+
+	const handleRemoveFile = (index) => {
+		const updatedFiles = [...messageImgs];
+		updatedFiles.splice(index, 1);
+		setMessageImgs(updatedFiles);
+	};
+	// Xử lý khi click chuột phải vào hiện bảng menu các công cụ
+	const handleContextMenu = (e, message) => {
+		e.preventDefault(); // Ngăn chặn menu chuẩn xuất hiện
+
+		console.log("Message context menu opened:", message);
+		setContextMenuVisible(!contextMenuVisible);
+		setSelectedMessageId(message.id);
+	};
+
+	const handleDeleteMessage = () => {};
+	const handleEditMessage = () => {};
+
+	const contextMenu = (
+		<Menu>
+			<Menu.Item key='delete' onClick={handleDeleteMessage}>
+				Xóa tin nhắn
+			</Menu.Item>
+			<Menu.Item key='edit' onClick={handleEditMessage}>
+				Chỉnh sửa tin nhắn
+			</Menu.Item>
+		</Menu>
+	);
+
 	return (
 		<WrapperStyled>
 			{selectedRoom?.id ? (
@@ -263,18 +318,30 @@ export default function ChatWindow() {
 					<ContentStyled>
 						<MessageListStyled>
 							{messages.map((mes) => (
-								<Message
+								<div
 									key={mes?.id}
-									text={mes?.text}
-									photoUrl={mes?.photoURL}
-									displayName={mes?.displayName}
-									img={mes?.img}
-									createdAt={
-										mes?.createdAt
-											? moment(mes.createdAt.toDate()).calendar()
-											: ""
-									}
-								/>
+									onContextMenu={(e) => handleContextMenu(e, mes)}
+									style={{
+										backgroundColor:
+											selectedMessageId === mes.id ? "#f0f0f0" : "transparent",
+										borderRadius: "8px",
+									}}>
+									<Dropdown overlay={contextMenu} trigger={["contextMenu"]}>
+										<span>
+											<Message
+												text={mes?.text}
+												photoUrl={mes?.photoURL}
+												displayName={mes?.displayName}
+												img={mes?.img}
+												createdAt={
+													mes?.createdAt
+														? moment(mes.createdAt.toDate()).calendar()
+														: ""
+												}
+											/>
+										</span>
+									</Dropdown>
+								</div>
 							))}
 						</MessageListStyled>
 						{/*  input message */}
@@ -308,7 +375,10 @@ export default function ChatWindow() {
 									style={{
 										display: "flex",
 										flexDirection: "column",
-									}}>
+									}}
+									onDragOver={handleDragOver}
+									onDrop={handleDrop}
+									draggable={true}>
 									<input
 										type='file'
 										multiple={true}
@@ -326,9 +396,25 @@ export default function ChatWindow() {
 									</Button>
 									<div style={{ marginLeft: "10px" }}>
 										{messageImgs?.map((file, index) => (
-											<div key={index}>
+											<div
+												key={index}
+												style={{ display: "flex", alignItems: "center" }}>
 												{isLoading && <Spin size='small'></Spin>}
-												<span> {file.name}</span>
+												<span
+													style={{
+														whiteSpace: "nowrap",
+														overflow: "hidden",
+														textOverflow: "ellipsis",
+														flex: "1",
+													}}>
+													{file.name}
+												</span>
+												<Button
+													type='link'
+													onClick={() => handleRemoveFile(index)}
+													icon={<DeleteOutlined />}
+													style={{ marginLeft: "auto" }}
+												/>
 											</div>
 										))}
 									</div>
