@@ -13,9 +13,21 @@ import {
 	Menu,
 	Spin,
 	Tooltip,
+	message,
 } from "antd";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import {
+	addDoc,
+	collection,
+	deleteDoc,
+	doc,
+	serverTimestamp,
+} from "firebase/firestore";
+import {
+	deleteObject,
+	getDownloadURL,
+	ref,
+	uploadBytesResumable,
+} from "firebase/storage";
 import moment from "moment";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
@@ -124,7 +136,7 @@ export default function ChatWindow() {
 
 	const [contextMenuVisible, setContextMenuVisible] = useState(false);
 
-	const [selectedMessageId, setSelectedMessageId] = useState(null);
+	const [selectedMessage, setSelectedMessage] = useState(null);
 
 	const handleSetStationUInput = () => {
 		setIsInputDefault(!isInputDefault);
@@ -156,7 +168,8 @@ export default function ChatWindow() {
 			if (messageImgs.length > 0) {
 				const uploadPromises = messageImgs.map((messageImg) => {
 					return new Promise((resolve, reject) => {
-						const storageRef = ref(storage, `MessageImages/${v4()}`);
+						const imgID = v4();
+						const storageRef = ref(storage, `MessageImages/${imgID}`);
 						const uploadTask = uploadBytesResumable(storageRef, messageImg);
 
 						uploadTask.on(
@@ -173,6 +186,7 @@ export default function ChatWindow() {
 									.then(async (downloadURL) => {
 										await addDoc(collection(db, "messages"), {
 											img: downloadURL,
+											imgID,
 											uid,
 											photoURL,
 											roomId: selectedRoom?.id,
@@ -250,25 +264,65 @@ export default function ChatWindow() {
 		updatedFiles.splice(index, 1);
 		setMessageImgs(updatedFiles);
 	};
-	// Xử lý khi click chuột phải vào hiện bảng menu các công cụ
 	const handleContextMenu = (e, message) => {
-		e.preventDefault(); // Ngăn chặn menu chuẩn xuất hiện
-
-		console.log("Message context menu opened:", message);
+		e.preventDefault();
 		setContextMenuVisible(!contextMenuVisible);
-		setSelectedMessageId(message.id);
+		setSelectedMessage(message);
 	};
 
-	const handleDeleteMessage = () => {};
+	const handleDeleteMessage = async () => {
+		try {
+			setIsLoading(true);
+			if (!selectedMessage) {
+				message.error("No message selected for deletion.");
+				return;
+			}
+			if (!selectedMessage?.img) {
+				await deleteDoc(doc(db, "messages", selectedMessage.id));
+				message.info("remove mess successfull");
+			} else {
+				const imgRef = ref(storage, `MessageImages/${selectedMessage.imgID}`);
+				await deleteObject(imgRef).then(() => {
+					message.info("remove img successfull");
+				});
+				await deleteDoc(doc(db, "messages", selectedMessage.id));
+			}
+			setSelectedMessage(null);
+		} catch (error) {
+			console.log("error", error);
+		} finally {
+			setIsLoading(false);
+		}
+	};
 	const handleEditMessage = () => {};
+	const handleSaveImg = () => {
+		if (!selectedMessage || !selectedMessage.img) {
+			message.error("Không có hình ảnh để lưu.");
+			return;
+		}
+
+		const link = document.createElement("a");
+
+		link.href = selectedMessage.img;
+		console.log(selectedMessage.img);
+		link.download = `${Date.now()}.jpg`;
+		link.click();
+	};
 
 	const contextMenu = (
 		<Menu>
+			{selectedMessage?.img && (
+				<Menu.Item key='saveImg' onClick={handleSaveImg}>
+					Lưu hình ảnh
+				</Menu.Item>
+			)}
+			{!selectedMessage?.img && (
+				<Menu.Item key='edit' onClick={handleEditMessage}>
+					Chỉnh sửa tin nhắn
+				</Menu.Item>
+			)}
 			<Menu.Item key='delete' onClick={handleDeleteMessage}>
 				Xóa tin nhắn
-			</Menu.Item>
-			<Menu.Item key='edit' onClick={handleEditMessage}>
-				Chỉnh sửa tin nhắn
 			</Menu.Item>
 		</Menu>
 	);
@@ -323,7 +377,9 @@ export default function ChatWindow() {
 									onContextMenu={(e) => handleContextMenu(e, mes)}
 									style={{
 										backgroundColor:
-											selectedMessageId === mes.id ? "#f0f0f0" : "transparent",
+											selectedMessage?.id === mes.id
+												? "#f0f0f0"
+												: "transparent",
 										borderRadius: "8px",
 									}}>
 									<Dropdown overlay={contextMenu} trigger={["contextMenu"]}>
