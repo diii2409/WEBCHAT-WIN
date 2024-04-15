@@ -4,7 +4,7 @@ import styled from "styled-components";
 
 const WrapperStyled = styled.div`
 	margin-bottom: 10px;
-
+	padding: 4px;
 	.author {
 		margin-left: 5px;
 		font-weight: bold;
@@ -37,7 +37,9 @@ export default function Message({
 			</div>
 			<div>
 				{text && <Typography.Text className='content'>{text}</Typography.Text>}
-				{img && <img src={img} style={{ maxWidth: "200px" }}></img>}
+				{img && (
+					<img src={img} style={{ maxWidth: "320px", margin: "10px" }}></img>
+				)}
 			</div>
 		</WrapperStyled>
 	);

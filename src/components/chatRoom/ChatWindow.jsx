@@ -1,7 +1,33 @@
-import { UploadOutlined, UserAddOutlined } from "@ant-design/icons";
-import { Alert, Avatar, Button, Form, Input, Spin, Tooltip } from "antd";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import {
+	DeleteOutlined,
+	UploadOutlined,
+	UserAddOutlined,
+} from "@ant-design/icons";
+import {
+	Alert,
+	Avatar,
+	Button,
+	Dropdown,
+	Form,
+	Input,
+	Menu,
+	Spin,
+	Tooltip,
+	message,
+} from "antd";
+import {
+	addDoc,
+	collection,
+	deleteDoc,
+	doc,
+	serverTimestamp,
+} from "firebase/firestore";
+import {
+	deleteObject,
+	getDownloadURL,
+	ref,
+	uploadBytesResumable,
+} from "firebase/storage";
 import moment from "moment";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
@@ -102,11 +128,15 @@ export default function ChatWindow() {
 
 	const [inputValue, setInputValue] = useState("");
 	const [form] = Form.useForm();
-	const messageListRef = useRef(null);
+
 	const [isInputDefault, setIsInputDefault] = useState(true);
 	const [messageImgs, setMessageImgs] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const inputRef = useRef();
+
+	const [contextMenuVisible, setContextMenuVisible] = useState(false);
+
+	const [selectedMessage, setSelectedMessage] = useState(null);
 
 	const handleSetStationUInput = () => {
 		setIsInputDefault(!isInputDefault);
@@ -138,7 +168,8 @@ export default function ChatWindow() {
 			if (messageImgs.length > 0) {
 				const uploadPromises = messageImgs.map((messageImg) => {
 					return new Promise((resolve, reject) => {
-						const storageRef = ref(storage, `MessageImages/${v4()}`);
+						const imgID = v4();
+						const storageRef = ref(storage, `MessageImages/${imgID}`);
 						const uploadTask = uploadBytesResumable(storageRef, messageImg);
 
 						uploadTask.on(
@@ -155,6 +186,7 @@ export default function ChatWindow() {
 									.then(async (downloadURL) => {
 										await addDoc(collection(db, "messages"), {
 											img: downloadURL,
+											imgID,
 											uid,
 											photoURL,
 											roomId: selectedRoom?.id,
@@ -218,6 +250,83 @@ export default function ChatWindow() {
 
 	const messages = useFirestore("messages", condition);
 
+	const handleDragOver = (e) => {
+		e.preventDefault();
+	};
+	const handleDrop = (e) => {
+		e.preventDefault();
+		const fileList = Array.from(e.dataTransfer.files);
+		setMessageImgs(fileList, ...messageImgs);
+	};
+
+	const handleRemoveFile = (index) => {
+		const updatedFiles = [...messageImgs];
+		updatedFiles.splice(index, 1);
+		setMessageImgs(updatedFiles);
+	};
+	const handleContextMenu = (e, message) => {
+		e.preventDefault();
+		setContextMenuVisible(!contextMenuVisible);
+		setSelectedMessage(message);
+	};
+
+	const handleDeleteMessage = async () => {
+		try {
+			setIsLoading(true);
+			if (!selectedMessage) {
+				message.error("No message selected for deletion.");
+				return;
+			}
+			if (!selectedMessage?.img) {
+				await deleteDoc(doc(db, "messages", selectedMessage.id));
+				message.info("remove mess successfull");
+			} else {
+				const imgRef = ref(storage, `MessageImages/${selectedMessage.imgID}`);
+				await deleteObject(imgRef).then(() => {
+					message.info("remove img successfull");
+				});
+				await deleteDoc(doc(db, "messages", selectedMessage.id));
+			}
+			setSelectedMessage(null);
+		} catch (error) {
+			console.log("error", error);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+	const handleEditMessage = () => {};
+	const handleSaveImg = () => {
+		if (!selectedMessage || !selectedMessage.img) {
+			message.error("Không có hình ảnh để lưu.");
+			return;
+		}
+
+		const link = document.createElement("a");
+
+		link.href = selectedMessage.img;
+		console.log(selectedMessage.img);
+		link.download = `${Date.now()}.jpg`;
+		link.click();
+	};
+
+	const contextMenu = (
+		<Menu>
+			{selectedMessage?.img && (
+				<Menu.Item key='saveImg' onClick={handleSaveImg}>
+					Lưu hình ảnh
+				</Menu.Item>
+			)}
+			{!selectedMessage?.img && (
+				<Menu.Item key='edit' onClick={handleEditMessage}>
+					Chỉnh sửa tin nhắn
+				</Menu.Item>
+			)}
+			<Menu.Item key='delete' onClick={handleDeleteMessage}>
+				Xóa tin nhắn
+			</Menu.Item>
+		</Menu>
+	);
+
 	return (
 		<WrapperStyled>
 			{selectedRoom?.id ? (
@@ -263,18 +372,32 @@ export default function ChatWindow() {
 					<ContentStyled>
 						<MessageListStyled>
 							{messages.map((mes) => (
-								<Message
+								<div
 									key={mes?.id}
-									text={mes?.text}
-									photoUrl={mes?.photoURL}
-									displayName={mes?.displayName}
-									img={mes?.img}
-									createdAt={
-										mes?.createdAt
-											? moment(mes.createdAt.toDate()).calendar()
-											: ""
-									}
-								/>
+									onContextMenu={(e) => handleContextMenu(e, mes)}
+									style={{
+										backgroundColor:
+											selectedMessage?.id === mes.id
+												? "#f0f0f0"
+												: "transparent",
+										borderRadius: "8px",
+									}}>
+									<Dropdown overlay={contextMenu} trigger={["contextMenu"]}>
+										<span>
+											<Message
+												text={mes?.text}
+												photoUrl={mes?.photoURL}
+												displayName={mes?.displayName}
+												img={mes?.img}
+												createdAt={
+													mes?.createdAt
+														? moment(mes.createdAt.toDate()).calendar()
+														: ""
+												}
+											/>
+										</span>
+									</Dropdown>
+								</div>
 							))}
 						</MessageListStyled>
 						{/*  input message */}
@@ -308,7 +431,10 @@ export default function ChatWindow() {
 									style={{
 										display: "flex",
 										flexDirection: "column",
-									}}>
+									}}
+									onDragOver={handleDragOver}
+									onDrop={handleDrop}
+									draggable={true}>
 									<input
 										type='file'
 										multiple={true}
@@ -326,9 +452,25 @@ export default function ChatWindow() {
 									</Button>
 									<div style={{ marginLeft: "10px" }}>
 										{messageImgs?.map((file, index) => (
-											<div key={index}>
+											<div
+												key={index}
+												style={{ display: "flex", alignItems: "center" }}>
 												{isLoading && <Spin size='small'></Spin>}
-												<span> {file.name}</span>
+												<span
+													style={{
+														whiteSpace: "nowrap",
+														overflow: "hidden",
+														textOverflow: "ellipsis",
+														flex: "1",
+													}}>
+													{file.name}
+												</span>
+												<Button
+													type='link'
+													onClick={() => handleRemoveFile(index)}
+													icon={<DeleteOutlined />}
+													style={{ marginLeft: "auto" }}
+												/>
 											</div>
 										))}
 									</div>
