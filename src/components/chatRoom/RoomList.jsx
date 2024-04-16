@@ -57,6 +57,7 @@ export default function RoomList() {
 	const handleAddRoom = () => {
 		setIsAddRoomVisible(true);
 	};
+
 	return (
 		<Collapse ghost defaultActiveKey={["1"]}>
 			<PanelStyled header='Danh sách các phòng' key={1}>

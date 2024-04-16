@@ -88,10 +88,13 @@ const ButtonGroupStyled = styled.div`
 const MessageListStyled = styled.div`
 	max-height: 100%;
 	overflow-y: auto;
+	border-radius: 8px;
+`;
+
+const WrapperMessage = styled.div`
 	&:hover {
 		background-color: #f0f0f0;
 	}
-	border-radius: 8px;
 `;
 
 const WrapperStyled = styled.div`
@@ -299,18 +302,22 @@ export default function ChatWindow() {
 		}
 	};
 	const handleEditMessage = () => {};
-	const handleSaveImg = () => {
+	const handleSaveImg = async () => {
 		if (!selectedMessage || !selectedMessage.img) {
 			message.error("Không có hình ảnh để lưu.");
 			return;
 		}
 
-		const link = document.createElement("a");
+		const image = await fetch(selectedMessage.img);
+		const imageBlog = await image.blob();
+		const imageURL = URL.createObjectURL(imageBlog);
 
-		link.href = selectedMessage.img;
-		console.log(selectedMessage.img);
+		const link = document.createElement("a");
+		link.href = imageURL;
 		link.download = `${Date.now()}.jpg`;
+		document.body.appendChild(link);
 		link.click();
+		document.body.removeChild(link);
 	};
 
 	const contextMenu = (
@@ -380,7 +387,7 @@ export default function ChatWindow() {
 									key={mes?.id}
 									onContextMenu={(e) => handleContextMenu(e, mes)}>
 									<Dropdown overlay={contextMenu} trigger={["contextMenu"]}>
-										<span>
+										<WrapperMessage>
 											<Message
 												text={mes?.text}
 												photoUrl={mes?.photoURL}
@@ -392,7 +399,7 @@ export default function ChatWindow() {
 														: ""
 												}
 											/>
-										</span>
+										</WrapperMessage>
 									</Dropdown>
 								</div>
 							))}
