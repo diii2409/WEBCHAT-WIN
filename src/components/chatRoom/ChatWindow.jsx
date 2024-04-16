@@ -11,6 +11,7 @@ import {
 	Form,
 	Input,
 	Menu,
+	Modal,
 	Spin,
 	Tooltip,
 	message,
@@ -154,6 +155,8 @@ export default function ChatWindow() {
 
 	const messageListRef = useRef(null);
 
+	const [isOpenModalEditMessage, setIsOpenModalEditMessage] = useState(false);
+
 	const handleSetStationUInput = () => {
 		setIsInputDefault(!isInputDefault);
 	};
@@ -268,15 +271,12 @@ export default function ChatWindow() {
 
 	const messages = useFirestore("messages", condition);
 
-	useEffect(() => {
-		if (messages.length > 0) {
-			setInputValue(messages);
-		}
-	}, [messages]);
-
 	useLayoutEffect(() => {
-		messageListRef.current?.scrollIntoView({ behavior: "smooth" });
-	}, [messages, selectedRoom]);
+		messageListRef.current?.scrollIntoView({
+			behavior: "smooth",
+			block: "end",
+		});
+	}, [messages, selectedRoom, inputValue]);
 
 	const handleDragOver = (e) => {
 		e.preventDefault();
@@ -323,6 +323,8 @@ export default function ChatWindow() {
 		}
 	};
 	const handleEditMessage = () => {};
+	const handleModalEditMessageOk = () => {};
+	const handleModalEditMessageCancel = () => {};
 	const handleSaveImg = async () => {
 		if (!selectedMessage || !selectedMessage.img) {
 			message.error("Không có hình ảnh để lưu.");
@@ -363,6 +365,13 @@ export default function ChatWindow() {
 		<WrapperStyled>
 			{selectedRoom?.id ? (
 				<>
+					<Modal
+						title='Chỉnh sửa tin nhắn'
+						open={isOpenModalEditMessage}
+						onOk={handleModalEditMessageOk}
+						onCancel={handleModalEditMessageCancel}
+						closable={false}
+					/>
 					<HeaderStyled>
 						<div className='header__info_avt'>
 							<Avatar
