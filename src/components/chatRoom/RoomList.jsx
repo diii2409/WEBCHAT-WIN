@@ -1,9 +1,26 @@
 import { PlusSquareOutlined } from "@ant-design/icons";
-import { Avatar, Button, Collapse, Dropdown, Menu, Typography } from "antd";
+import {
+	Avatar,
+	Button,
+	Collapse,
+	Dropdown,
+	Menu,
+	Typography,
+	message,
+} from "antd";
+import {
+	collection,
+	deleteDoc,
+	doc,
+	getDocs,
+	query,
+	where,
+} from "firebase/firestore";
 import { useContext, useState } from "react";
 import styled from "styled-components";
 import avatarDefault from "../../../public/vite.svg";
 import { AppContext } from "../../context/AppProvider";
+import { db } from "../../firebase/config";
 const { Panel } = Collapse;
 const { Link } = Typography;
 
@@ -48,15 +65,49 @@ export default function RoomList() {
 		setSelectedRoom(room);
 	};
 
+	const handleDeleteRoom = async () => {
+		try {
+			// setIsLoading(true);
+
+			// remove all messages in room
+			const querySnapshot = await getDocs(
+				query(
+					collection(db, "messages"),
+					where("roomId", "==", selectedRoom.id),
+				),
+			);
+
+			const deletePromises = [];
+
+			querySnapshot.forEach((doc) => {
+				deletePromises.push(deleteDoc(doc.ref));
+			});
+
+			await Promise.all(deletePromises);
+
+			// remove rooms
+			await deleteDoc(doc(db, "rooms", selectedRoom.id));
+			setSelectedRoom(null);
+		} catch (error) {
+			console.error("error : ", error);
+		} finally {
+			// setIsLoading(false);
+			message.info("remove room successfull");
+		}
+	};
+
 	const contextMenu = (
 		<Menu>
-			<Menu.Item key='delete'>Xóa nhóm</Menu.Item>
+			<Menu.Item key='delete' onClick={handleDeleteRoom}>
+				Xóa nhóm
+			</Menu.Item>
 		</Menu>
 	);
 
 	const handleAddRoom = () => {
 		setIsAddRoomVisible(true);
 	};
+
 	return (
 		<Collapse ghost defaultActiveKey={["1"]}>
 			<PanelStyled header='Danh sách các phòng' key={1}>
