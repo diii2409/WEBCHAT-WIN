@@ -1,16 +1,17 @@
 import {
+	Navigate,
+	Route,
 	BrowserRouter as Router,
 	Routes,
-	Route,
-	Navigate,
 } from "react-router-dom";
 import Login from "./components/Login/index.jsx";
 import ChatRoom from "./components/chatRoom/index.jsx";
 
-import { AuthContext } from "./context/AuthContext";
 import { useContext } from "react";
 import AddRoomModal from "./Modals/AddRoomModal.jsx";
+import FindRoomModal from "./Modals/FindRoomModal.jsx";
 import InviteMemberModal from "./Modals/InviteMemberModal.jsx";
+import { AuthContext } from "./context/AuthContext";
 
 function App() {
 	const { currentUser } = useContext(AuthContext);
@@ -34,6 +35,7 @@ function App() {
 			</Routes>
 			<AddRoomModal />
 			<InviteMemberModal />
+			<FindRoomModal />
 		</Router>
 	);
 }

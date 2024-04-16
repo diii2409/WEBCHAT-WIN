@@ -1,8 +1,17 @@
-import { Avatar, Button, Typography } from "antd";
-import styled from "styled-components";
+import {
+	Alert,
+	Avatar,
+	Button,
+	Dropdown,
+	Menu,
+	Modal,
+	Spin,
+	Typography,
+} from "antd";
 import { signOut } from "firebase/auth";
+import { useContext, useState } from "react";
+import styled from "styled-components";
 import { auth } from "../../firebase/config";
-import { useContext } from "react";
 
 import { AuthContext } from "../../context/AuthContext";
 
@@ -21,25 +30,63 @@ const WrapperStyled = styled.div`
 `;
 
 export default function UserInfo() {
-	const handleLogout = async () => {
-		await signOut(auth);
-	};
-
 	const {
 		currentUser: { photoURL, displayName },
 	} = useContext(AuthContext);
 
+	const [isModalConfirmLogOut, setIsModalConfirmLogOut] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
+	// khu vực này xử lý khi chuột phải
+	const handleLogout = () => {
+		setIsModalConfirmLogOut(true);
+	};
+	const handleModalLogOutOk = async () => {
+		try {
+			setIsLoading(true);
+			await signOut(auth);
+			setIsModalConfirmLogOut(false);
+		} catch (error) {
+			console.log("error", error);
+		} finally {
+			setIsLoading(false);
+			setIsModalConfirmLogOut(false);
+		}
+	};
+	const handleModalLogOutCancel = () => {
+		setIsModalConfirmLogOut(false);
+	};
+
+	const contextMenu = (
+		<Menu>
+			<Menu.Item key='logOut' onClick={handleLogout}>
+				Thay đổi tài khoản
+			</Menu.Item>
+		</Menu>
+	);
+
 	return (
-		<WrapperStyled>
-			<div>
-				<Avatar src={photoURL}>
-					{photoURL ? "" : displayName.charAt(0).toUpperCase()}
-				</Avatar>
-				<Text className='username'>{displayName}</Text>
-			</div>
-			<Button ghost onClick={handleLogout}>
-				Đăng xuất
-			</Button>
-		</WrapperStyled>
+		<div>
+			<Modal
+				open={isModalConfirmLogOut}
+				title='Xác nhận đăng xuất tài khoản'
+				closable={false}
+				onOk={handleModalLogOutOk}
+				onCancel={handleModalLogOutCancel}>
+				{isLoading ? <Spin /> : <Alert message={`${displayName}`} />}
+			</Modal>
+			<WrapperStyled>
+				<div onContextMenu={(e) => e.preventDefault()}>
+					<Dropdown overlay={contextMenu} trigger={["contextMenu"]}>
+						<div>
+							<Avatar src={photoURL}>
+								{photoURL ? "" : displayName.charAt(0).toUpperCase()}
+							</Avatar>
+							<Text className='username'>{displayName}</Text>
+						</div>
+					</Dropdown>
+				</div>
+				<Button ghost>Tìm phòng</Button>
+			</WrapperStyled>
+		</div>
 	);
 }

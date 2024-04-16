@@ -151,8 +151,6 @@ export default function ChatWindow() {
 	const [isLoading, setIsLoading] = useState(false);
 	const inputRef = useRef();
 
-	const [contextMenuVisible, setContextMenuVisible] = useState(false);
-
 	const [selectedMessage, setSelectedMessage] = useState(null);
 
 	const messageListRef = useRef(null);
@@ -298,7 +296,6 @@ export default function ChatWindow() {
 	};
 	const handleContextMenu = (e, message) => {
 		e.preventDefault();
-		setContextMenuVisible(!contextMenuVisible);
 		setSelectedMessage(message);
 	};
 

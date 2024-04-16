@@ -8,6 +8,7 @@ export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
 	const [isAddRoomVisible, setIsAddRoomVisible] = useState(false);
+	const [isFindRoomOpen, setIsFindRoomOpen] = useState(false);
 	const [isInviteMemberVisible, setIsInviteMemberVisible] = useState(false);
 	const [isSelectedRoomId, setIsSelectedRoomId] = useState("");
 	const [members, setMembers] = useState([]);
@@ -55,6 +56,8 @@ export const AppProvider = ({ children }) => {
 				selectedRoom,
 				isAddRoomVisible,
 				setIsAddRoomVisible,
+				isFindRoomOpen,
+				setIsFindRoomOpen,
 				isSelectedRoomId,
 				setIsSelectedRoomId,
 				isInviteMemberVisible,

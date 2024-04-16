@@ -1,4 +1,4 @@
-import { Avatar, Form, Modal, Select, Spin, Typography } from "antd";
+import { Avatar, Form, Modal, Select, Spin } from "antd";
 import {
 	collection,
 	doc,
@@ -28,7 +28,6 @@ function DebounceSelect({
 			}, wait);
 		};
 	};
-
 	const debounceFetcher = useMemo(() => {
 		const loadOptions = (value) => {
 			setOptions([]);
@@ -70,20 +69,20 @@ function DebounceSelect({
 // **********************************************************
 const fetchUserList = async (search, curMembers) => {
 	try {
-		let q = collection(db, "users");
+		let q = collection(db, "rooms");
 		if (search) {
 			q = query(
-				collection(db, "users"),
+				collection(db, "rooms"),
 				where("keywords", "array-contains", search.toLowerCase()),
 			);
 		}
-
 		const snapshot = await getDocs(q);
+		console.log(snapshot);
 		const userList = snapshot.docs
 			.map((doc) => ({
-				label: doc.data().displayName,
+				label: doc.data().name,
 				value: doc.data().uid,
-				photoURL: doc.data().photoURL,
+				photoURL: doc.data().avatar,
 			}))
 			.filter((opt) => !curMembers.includes(opt.value));
 
@@ -95,12 +94,8 @@ const fetchUserList = async (search, curMembers) => {
 };
 // **********************************************************
 export default function InviteMemberModal() {
-	const {
-		isInviteMemberVisible,
-		setIsInviteMemberVisible,
-		isSelectedRoomId,
-		selectedRoom,
-	} = useContext(AppContext);
+	const { isFindRoomOpen, setIsFindRoomOpen, isSelectedRoomId, selectedRoom } =
+		useContext(AppContext);
 	const [value, setValue] = useState([]);
 	const [form] = Form.useForm();
 
@@ -116,7 +111,7 @@ export default function InviteMemberModal() {
 				members: updatedMembers,
 			});
 
-			setIsInviteMemberVisible(false);
+			setIsFindRoomOpen(false);
 		} catch (error) {
 			console.error("Error inviting members:", error);
 		}
@@ -125,14 +120,14 @@ export default function InviteMemberModal() {
 	const handleCancel = () => {
 		form.resetFields();
 		setValue([]);
-		setIsInviteMemberVisible(false);
+		setIsFindRoomOpen(false);
 	};
 
 	return (
 		<div>
 			<Modal
-				title='Mời thêm thành viên'
-				open={isInviteMemberVisible}
+				title='Tìm phòng'
+				open={false}
 				onOk={handleOk}
 				onCancel={handleCancel}
 				destroyOnClose={true}>
@@ -140,13 +135,13 @@ export default function InviteMemberModal() {
 					<DebounceSelect
 						mode='multiple'
 						name='search-user'
-						label='Tên các thành viên'
+						label='Tên phòng'
 						value={value}
-						placeholder='Nhập tên thành viên'
+						placeholder='Nhập tên phòng'
 						fetchOptions={fetchUserList}
 						onChange={(newValue) => setValue(newValue)}
 						style={{ width: "100%" }}
-						curMembers={selectedRoom?.members}
+						curMembers={selectedRoom?.uid}
 					/>
 				</Form>
 			</Modal>
