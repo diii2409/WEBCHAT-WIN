@@ -29,7 +29,14 @@ import {
 	uploadBytesResumable,
 } from "firebase/storage";
 import moment from "moment";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+	useContext,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import styled from "styled-components";
 import { v4 } from "uuid";
 import avatarDefault from "../../../public/vite.svg";
@@ -145,6 +152,8 @@ export default function ChatWindow() {
 
 	const [selectedMessage, setSelectedMessage] = useState(null);
 
+	const messageListRef = useRef(null);
+
 	const handleSetStationUInput = () => {
 		setIsInputDefault(!isInputDefault);
 	};
@@ -241,9 +250,11 @@ export default function ChatWindow() {
 
 	const fileInputRef = useRef();
 	const handleUploadChange = (event) => {
+		setIsLoading(true);
 		const fileList = Array.from(event.target.files);
 		setMessageImgs(fileList, ...messageImgs);
 		event.target.value = null;
+		setIsLoading(false);
 	};
 
 	const condition = useMemo(
@@ -256,6 +267,16 @@ export default function ChatWindow() {
 	);
 
 	const messages = useFirestore("messages", condition);
+
+	useEffect(() => {
+		if (messages.length > 0) {
+			setInputValue(messages);
+		}
+	}, [messages]);
+
+	useLayoutEffect(() => {
+		messageListRef.current?.scrollIntoView({ behavior: "smooth" });
+	}, [messages, selectedRoom]);
 
 	const handleDragOver = (e) => {
 		e.preventDefault();
@@ -387,7 +408,7 @@ export default function ChatWindow() {
 									key={mes?.id}
 									onContextMenu={(e) => handleContextMenu(e, mes)}>
 									<Dropdown overlay={contextMenu} trigger={["contextMenu"]}>
-										<WrapperMessage>
+										<WrapperMessage ref={messageListRef}>
 											<Message
 												text={mes?.text}
 												photoUrl={mes?.photoURL}
@@ -414,6 +435,7 @@ export default function ChatWindow() {
 									ref={inputRef}
 									placeholder='nhập tin nhắn đi ku'
 									variant={false}
+									autoFocus
 									disabled={isLoading}
 									autoComplete='off'
 									onChange={handleInputChange}
