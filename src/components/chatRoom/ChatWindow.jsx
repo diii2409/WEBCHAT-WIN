@@ -22,6 +22,7 @@ import {
 	deleteDoc,
 	doc,
 	serverTimestamp,
+	updateDoc,
 } from "firebase/firestore";
 import {
 	deleteObject,
@@ -143,6 +144,7 @@ export default function ChatWindow() {
 
 	const [inputValue, setInputValue] = useState("");
 	const [form] = Form.useForm();
+	const [formEditMessage] = Form.useForm();
 
 	const [isInputDefault, setIsInputDefault] = useState(true);
 	const [messageImgs, setMessageImgs] = useState([]);
@@ -156,6 +158,7 @@ export default function ChatWindow() {
 	const messageListRef = useRef(null);
 
 	const [isOpenModalEditMessage, setIsOpenModalEditMessage] = useState(false);
+	const inputNewMessageRef = useRef(null);
 
 	const handleSetStationUInput = () => {
 		setIsInputDefault(!isInputDefault);
@@ -163,8 +166,9 @@ export default function ChatWindow() {
 
 	useEffect(() => {
 		const handleKeyDown = (event) => {
-			if (event.keyCode === 27) {
+			if (event.keyCode === 27 && !isLoading) {
 				handleSetStationUInput();
+				handleModalEditMessageCancel();
 			}
 		};
 
@@ -322,9 +326,41 @@ export default function ChatWindow() {
 			setIsLoading(false);
 		}
 	};
-	const handleEditMessage = () => {};
-	const handleModalEditMessageOk = () => {};
-	const handleModalEditMessageCancel = () => {};
+
+	// khu vực hàm xử lý việc edit messages
+	const handleEditMessage = () => {
+		setIsOpenModalEditMessage(true);
+	};
+	const handleModalEditMessageOk = async () => {
+		try {
+			await formEditMessage.validateFields();
+			const { newMessage } = formEditMessage.getFieldsValue();
+			setIsLoading(true);
+			const messageDocRef = doc(db, "messages", selectedMessage?.id);
+			await updateDoc(messageDocRef, {
+				text: newMessage,
+			});
+		} catch (error) {
+			console.log("error", error);
+		} finally {
+			setIsLoading(false);
+			setSelectedMessage(null);
+			formEditMessage.resetFields();
+			message.info("edit mess successfull");
+			setIsOpenModalEditMessage(false);
+		}
+	};
+	const handleModalEditMessageCancel = () => {
+		setSelectedMessage(null);
+		setIsOpenModalEditMessage(false);
+	};
+
+	useEffect(() => {
+		if (isOpenModalEditMessage && inputNewMessageRef?.current) {
+			inputNewMessageRef?.current.focus();
+		}
+	}, [isOpenModalEditMessage]);
+
 	const handleSaveImg = async () => {
 		if (!selectedMessage || !selectedMessage.img) {
 			message.error("Không có hình ảnh để lưu.");
@@ -343,6 +379,7 @@ export default function ChatWindow() {
 		document.body.removeChild(link);
 	};
 
+	// khu vực thiết kế menu khi click chuột phải
 	const contextMenu = (
 		<Menu>
 			{selectedMessage?.img && (
@@ -370,8 +407,24 @@ export default function ChatWindow() {
 						open={isOpenModalEditMessage}
 						onOk={handleModalEditMessageOk}
 						onCancel={handleModalEditMessageCancel}
-						closable={false}
-					/>
+						closable={false}>
+						<Form form={formEditMessage} layout='vertical'>
+							<Form.Item label='Tin nhắn'>
+								<Alert type='info' message={selectedMessage?.text} />
+							</Form.Item>
+							<Form.Item
+								label='Tin nhắn mới'
+								hasFeedback
+								name='newMessage'
+								validateStatus={isLoading ? "validating" : ""}>
+								<Input
+									ref={inputNewMessageRef}
+									placeholder='Nhập tin nhắn mới'
+									autoFocus={true}
+									onPressEnter={handleModalEditMessageOk}></Input>
+							</Form.Item>
+						</Form>
+					</Modal>
 					<HeaderStyled>
 						<div className='header__info_avt'>
 							<Avatar
@@ -444,7 +497,7 @@ export default function ChatWindow() {
 									ref={inputRef}
 									placeholder='nhập tin nhắn đi ku'
 									variant={false}
-									autoFocus
+									autoFocus={true}
 									disabled={isLoading}
 									autoComplete='off'
 									onChange={handleInputChange}

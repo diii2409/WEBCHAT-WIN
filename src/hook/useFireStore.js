@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
-import { db } from "../firebase/config";
 import {
 	collection,
 	onSnapshot,
+	orderBy,
 	query,
 	where,
-	orderBy,
 } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { db } from "../firebase/config";
 
 const useFirestore = (collectionName, condition) => {
 	const [documents, setDocuments] = useState([]);
@@ -22,13 +22,10 @@ const useFirestore = (collectionName, condition) => {
 			q = query(
 				collection(db, collectionName),
 				where(condition.fieldName, condition.operator, condition.compareValues),
-				orderBy("createdAt", "asc"), // Sắp xếp theo thời gian tăng dần
+				orderBy("createdAt", "asc"),
 			);
 		} else {
-			q = query(
-				collection(db, collectionName),
-				orderBy("createdAt", "asc"), // Sắp xếp theo thời gian tăng dần
-			);
+			q = query(collection(db, collectionName), orderBy("createdAt", "asc"));
 		}
 
 		const unsubscribe = onSnapshot(q, (snapshot) => {
