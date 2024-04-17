@@ -17,6 +17,7 @@ import {
 	message,
 } from "antd";
 import {
+	Timestamp,
 	addDoc,
 	collection,
 	deleteDoc,
@@ -210,85 +211,106 @@ export default function ChatWindow() {
 	//
 	//
 	// khu vực xử lý gửi tin nhắn
-	const handleOnSubmit = async () => {
+	//********************************************************* */
+	// Xử lý tải file
+	const uploadFile = async (messageFiles) => {
 		try {
-			setIsLoading(true); // Bắt đầu quá trình loading
+			const messFiles = messageFiles;
+			setMessageFiles([]);
+			const uploadPromises = messFiles.map(async (messageFile) => {
+				// Xử lý tải file
+				const fileID = v4();
+				const fileType = messageFile.type.split("/").shift();
+				const fileFullName = messageFile.name.split(".");
+				const fileName = fileFullName.shift();
+				const fileExtension = fileFullName.pop();
+				const timestamp = Timestamp.now();
+				const storageRef = ref(storage, `MessageFiles/${fileID}`);
+				const uploadTask = uploadBytesResumable(storageRef, messageFile);
 
-			if (messageFiles.length > 0) {
-				const uploadPromises = messageFiles.map((messageFile) => {
-					return new Promise((resolve, reject) => {
-						const fileID = v4();
-						const fileType = messageFile.type.split("/").shift();
-						const fileFullName = messageFile.name.split(".");
-						const fileName = fileFullName.shift();
-						const fileExtension = fileFullName.pop();
-						const storageRef = ref(storage, `MessageFiles/${fileID}`);
-						const uploadTask = uploadBytesResumable(storageRef, messageFile);
+				// Chờ cho quá trình tải lên hoàn thành
+				await uploadTask;
 
-						uploadTask.on(
-							"state_changed",
-							(snapshot) => {
-								// Cập nhật trạng thái upload nếu cần
-							},
-							(error) => {
-								console.log("error", error);
-								reject(error);
-							},
-							() => {
-								getDownloadURL(uploadTask.snapshot.ref)
-									.then(async (downloadURL) => {
-										const value = await addDoc(collection(db, "messages"), {
-											fileURL: downloadURL,
-											fileID,
-											fileName,
-											fileType,
-											fileExtension,
-											uid,
-											photoURL,
-											roomId: selectedRoom?.id,
-											displayName,
-											createdAt: serverTimestamp(),
-										});
-										resolve(value);
-									})
-									.catch((error) => {
-										console.log("error", error);
-										reject(error);
-									});
-							},
-						);
-					});
+				// Trả về URL của file đã tải lên
+				return getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => ({
+					fileURL: downloadURL,
+					fileID,
+					fileName,
+					fileType,
+					fileExtension,
+					createdAt: timestamp,
+				}));
+			});
+
+			// Chờ cho tất cả các tệp tin tải lên hoàn thành
+			return Promise.all(uploadPromises);
+		} catch (error) {
+			console.error("Error uploading file:", error);
+			throw error;
+		}
+	};
+
+	// Xử lý gửi tin nhắn
+	const sendMessage = async (text, messageFiles) => {
+		try {
+			// Nếu có tin nhắn văn bản, gửi nó đi
+			setInputValue("");
+			form.resetFields(["message"]);
+			if (text.trim() !== "") {
+				await addDoc(collection(db, "messages"), {
+					text: text.trim(),
+					uid,
+					photoURL,
+					roomId: selectedRoom?.id,
+					displayName,
+					createdAt: serverTimestamp(),
 				});
+			}
+			if (inputRef?.current) {
+				setTimeout(() => {
+					inputRef.current.focus();
+				});
+			}
 
-				const result = await Promise.all(uploadPromises);
-				console.log({ result });
-				setMessageFiles([]);
-			} else {
-				if (inputValue.trim() !== "") {
+			// Nếu có tệp tin, tải chúng lên và gửi thông tin về chúng
+			if (messageFiles.length > 0) {
+				const filesInfo = await uploadFile(messageFiles);
+
+				// Lưu thông tin về các tệp tin vào cơ sở dữ liệu
+				for (const fileInfo of filesInfo) {
 					await addDoc(collection(db, "messages"), {
-						text: inputValue.trim(),
+						...fileInfo,
 						uid,
 						photoURL,
 						roomId: selectedRoom?.id,
 						displayName,
-						createdAt: serverTimestamp(),
+						createdAt: fileInfo?.createdAt,
 					});
 				}
-				if (inputRef?.current) {
-					setTimeout(() => {
-						inputRef.current.focus();
-					});
-				}
-				form.resetFields(["message"]);
-				setInputValue("");
 			}
 		} catch (error) {
-			message.error("send message fail");
-			console.error("Error adding document: ", error);
-		} finally {
-			setIsLoading(false);
+			console.error("Error sending message:", error);
+			throw error;
 		}
 	};
+
+	// Xử lý sự kiện gửi tin nhắn
+	const handleOnSubmit = async () => {
+		try {
+			setIsLoading(true); // Bắt đầu quá trình loading
+
+			// Gửi tin nhắn
+			await sendMessage(inputValue, messageFiles);
+
+			// Reset danh sách tệp tin
+			setMessageFiles([]);
+			setIsLoading(false);
+		} catch (error) {
+			message.error("Failed to send message");
+		}
+	};
+
+	//********************************************************* */
 	// lập điều kiện để tải tin nhắn
 	const condition = useMemo(
 		() => ({
@@ -317,17 +339,13 @@ export default function ChatWindow() {
 				message.error("No message selected for deletion.");
 				return;
 			}
-			if (!selectedMessage?.img) {
-				selectedRoom?.avatar === "default"
-					? avatarDefault
-					: selectedRoom?.avatar;
+			if (!selectedMessage?.fileURL) {
 				await deleteDoc(doc(db, "messages", selectedMessage.id));
 				message.info("remove mess successfull");
 			} else {
-				const imgRef = ref(storage, `MessageImages/${selectedMessage.imgID}`);
-				await deleteObject(imgRef).then(() => {
-					message.info("remove img successfull");
-				});
+				const imgRef = ref(storage, `MessageFiles/${selectedMessage.fileID}`);
+				await deleteObject(imgRef).then(() => {});
+				message.info("remove img successfull");
 				await deleteDoc(doc(db, "messages", selectedMessage.id));
 			}
 			setSelectedMessage(null);
@@ -449,7 +467,7 @@ export default function ChatWindow() {
 	// khu vực xử lý useEffect
 	useEffect(() => {
 		const handleKeyDown = (event) => {
-			if (event.keyCode === 27 && !isLoading) {
+			if (event.keyCode === 27) {
 				handleSetStationUInput();
 				handleModalEditMessageCancel();
 			}
@@ -479,7 +497,6 @@ export default function ChatWindow() {
 
 	//*************************************************** */
 	//*************************************************** */
-	console.log({ messages });
 	return (
 		<WrapperStyled>
 			{selectedRoom?.id ? (
@@ -593,7 +610,7 @@ export default function ChatWindow() {
 									placeholder='nhập tin nhắn đi ku'
 									variant={false}
 									autoFocus={true}
-									disabled={isLoading}
+									// disabled={isLoading}
 									autoComplete='off'
 									onChange={handleInputChange}
 									onPressEnter={handleOnSubmit}
@@ -662,8 +679,8 @@ export default function ChatWindow() {
 
 							<Button
 								type='primary'
-								onClick={handleOnSubmit}
-								disabled={isLoading}>
+								// disabled={isLoading}
+								onClick={handleOnSubmit}>
 								Gửi
 							</Button>
 						</FormStyled>

@@ -20,7 +20,7 @@ export default function AddRoomModal() {
 	const uid = currentUser?.uid;
 	const [form] = Form.useForm();
 	const fileInputRef = useRef();
-	console.log({ erroravatarExtension });
+
 	//********************************************* */
 	//********************************************* */
 	// Xử lý hàm handleOk
@@ -87,7 +87,7 @@ export default function AddRoomModal() {
 	// Xử lý hàm handlePreviewAvatarRoom
 	const handlePreviewAvatarRoom = (e) => {
 		const file = e.target.files[0];
-		console.log(isImageFile(file?.type));
+
 		if (isImageFile(file?.type)) {
 			setErrorAvatarExtension(false);
 			file.preview = URL.createObjectURL(file);

@@ -48,9 +48,8 @@ export default function EditInfoRoomModal() {
 			} else {
 				if (selectedRoom?.avatar !== "default") {
 					const imgRef = ref(storage, `AvatarRoom/${selectedRoom?.avatarId}`);
-					await deleteObject(imgRef).then(() => {
-						message.info("remove avatar room successfull");
-					});
+					await deleteObject(imgRef).then(() => {});
+					message.info("remove avatar room successfull");
 				}
 				const avatarId = v4();
 				const imgRef = ref(storage, `AvatarRoom/${avatarId}`);
