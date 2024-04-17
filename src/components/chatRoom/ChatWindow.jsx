@@ -153,7 +153,7 @@ export default function ChatWindow() {
 	//*************************************************** */
 	const [inputValue, setInputValue] = useState("");
 	const [isInputDefault, setIsInputDefault] = useState(true);
-	const [messageImgs, setMessageImgs] = useState([]);
+	const [messageFiles, setMessageFiles] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [selectedMessage, setSelectedMessage] = useState(null);
 	const [isOpenModalEditMessage, setIsOpenModalEditMessage] = useState(false);
@@ -181,7 +181,11 @@ export default function ChatWindow() {
 	const handleUploadChange = (event) => {
 		setIsLoading(true);
 		const fileList = Array.from(event.target.files);
-		setMessageImgs(fileList, ...messageImgs);
+		// fileList.forEach((f) => {
+		// 	const fileName = f.type.split("/").shift();
+		// 	console.log("fileType", fileName);
+		// });
+		setMessageFiles(fileList, ...messageFiles);
 		event.target.value = null;
 		setIsLoading(false);
 	};
@@ -195,13 +199,13 @@ export default function ChatWindow() {
 	const handleDrop = (e) => {
 		e.preventDefault();
 		const fileList = Array.from(e.dataTransfer.files);
-		setMessageImgs(fileList, ...messageImgs);
+		setMessageFiles(fileList, ...messageFiles);
 	};
 
 	const handleRemoveFile = (index) => {
-		const updatedFiles = [...messageImgs];
+		const updatedFiles = [...messageFiles];
 		updatedFiles.splice(index, 1);
-		setMessageImgs(updatedFiles);
+		setMessageFiles(updatedFiles);
 	};
 	//
 	//
@@ -210,12 +214,16 @@ export default function ChatWindow() {
 		try {
 			setIsLoading(true); // Bắt đầu quá trình loading
 
-			if (messageImgs.length > 0) {
-				const uploadPromises = messageImgs.map((messageImg) => {
+			if (messageFiles.length > 0) {
+				const uploadPromises = messageFiles.map((messageFile) => {
 					return new Promise((resolve, reject) => {
-						const imgID = v4();
-						const storageRef = ref(storage, `MessageImages/${imgID}`);
-						const uploadTask = uploadBytesResumable(storageRef, messageImg);
+						const fileID = v4();
+						const fileType = messageFile.type.split("/").shift();
+						const fileFullName = messageFile.name.split(".");
+						const fileName = fileFullName.shift();
+						const fileExtension = fileFullName.pop();
+						const storageRef = ref(storage, `MessageFiles/${fileID}`);
+						const uploadTask = uploadBytesResumable(storageRef, messageFile);
 
 						uploadTask.on(
 							"state_changed",
@@ -230,8 +238,11 @@ export default function ChatWindow() {
 								getDownloadURL(uploadTask.snapshot.ref)
 									.then(async (downloadURL) => {
 										await addDoc(collection(db, "messages"), {
-											img: downloadURL,
-											imgID,
+											fileURL: downloadURL,
+											fileID,
+											fileName,
+											fileType,
+											fileExtension,
 											uid,
 											photoURL,
 											roomId: selectedRoom?.id,
@@ -250,7 +261,7 @@ export default function ChatWindow() {
 				});
 
 				await Promise.all(uploadPromises);
-				setMessageImgs([]);
+				setMessageFiles([]);
 			} else {
 				if (inputValue.trim() !== "") {
 					await addDoc(collection(db, "messages"), {
@@ -358,20 +369,20 @@ export default function ChatWindow() {
 	//
 	//
 	//
-	// Xử lý lưu hình ảnh
-	const handleSaveImg = async () => {
-		if (!selectedMessage || !selectedMessage.img) {
-			message.error("Không có hình ảnh để lưu.");
+	// Xử lý lưu file
+	const handleSaveFile = async () => {
+		if (!selectedMessage || !selectedMessage?.fileURL) {
+			message.error("Không có file để lưu.");
 			return;
 		}
 
-		const image = await fetch(selectedMessage.img);
-		const imageBlog = await image.blob();
-		const imageURL = URL.createObjectURL(imageBlog);
+		const file = await fetch(selectedMessage?.file);
+		const fileBlog = await file.blob();
+		const fileURL = URL.createObjectURL(fileBlog);
 
 		const link = document.createElement("a");
-		link.href = imageURL;
-		link.download = `${Date.now()}.jpg`;
+		link.href = fileURL;
+		link.download = `${selectedMessage.fileName}.${selectedMessage.fileExtension}`;
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);
@@ -387,12 +398,12 @@ export default function ChatWindow() {
 	// khu vực thiết kế menu khi click chuột phải khi ấn vào tin nhắn
 	const contextMenu = selectedMessage ? (
 		<Menu>
-			{selectedMessage?.img && (
-				<Menu.Item key='saveImg' onClick={handleSaveImg}>
-					Lưu hình ảnh
+			{!selectedMessage?.text && (
+				<Menu.Item key='saveImg' onClick={handleSaveFile}>
+					Lưu file {selectedMessage?.fileType}
 				</Menu.Item>
 			)}
-			{!selectedMessage?.img && (
+			{selectedMessage?.text && (
 				<Menu.Item key='edit' onClick={handleEditMessage}>
 					Chỉnh sửa tin nhắn
 				</Menu.Item>
@@ -531,7 +542,10 @@ export default function ChatWindow() {
 												text={mes?.text}
 												photoUrl={mes?.photoURL}
 												displayName={mes?.displayName}
-												img={mes?.img}
+												fileURL={mes?.fileURL}
+												fileName={mes?.fileName}
+												fileExtension={mes?.fileExtension}
+												fileType={mes?.fileType}
 												createdAt={
 													mes?.createdAt
 														? moment(mes.createdAt.toDate()).calendar()
@@ -585,7 +599,6 @@ export default function ChatWindow() {
 										style={{ display: "none" }}
 										onChange={handleUploadChange}
 										ref={fileInputRef}
-										accept='.png,.jpg,.jpeg,.gif'
 									/>
 									<Button
 										icon={<UploadOutlined />}
@@ -595,7 +608,7 @@ export default function ChatWindow() {
 										Chọn file
 									</Button>
 									<div style={{ marginLeft: "10px" }}>
-										{messageImgs?.map((file, index) => (
+										{messageFiles?.map((file, index) => (
 											<div
 												key={index}
 												style={{ display: "flex", alignItems: "center" }}>
@@ -607,7 +620,8 @@ export default function ChatWindow() {
 														textOverflow: "ellipsis",
 														flex: "1",
 													}}>
-													{file.name}
+													{"  "}
+													{file?.name}
 												</span>
 												<Button
 													type='link'
