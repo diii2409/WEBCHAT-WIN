@@ -151,8 +151,6 @@ export default function ChatWindow() {
 	const [isLoading, setIsLoading] = useState(false);
 	const inputRef = useRef();
 
-	const [contextMenuVisible, setContextMenuVisible] = useState(false);
-
 	const [selectedMessage, setSelectedMessage] = useState(null);
 
 	const messageListRef = useRef(null);
@@ -298,7 +296,6 @@ export default function ChatWindow() {
 	};
 	const handleContextMenu = (e, message) => {
 		e.preventDefault();
-		setContextMenuVisible(!contextMenuVisible);
 		setSelectedMessage(message);
 	};
 
@@ -310,6 +307,9 @@ export default function ChatWindow() {
 				return;
 			}
 			if (!selectedMessage?.img) {
+				selectedRoom?.avatar === "default"
+					? avatarDefault
+					: selectedRoom?.avatar;
 				await deleteDoc(doc(db, "messages", selectedMessage.id));
 				message.info("remove mess successfull");
 			} else {

@@ -7,7 +7,7 @@ import avtRoomDefault from "../../public/roomDefualt.svg";
 import { AppContext } from "../context/AppProvider";
 import { AuthContext } from "../context/AuthContext";
 import { storage } from "../firebase/config";
-import { addDocument } from "../firebase/service";
+import { addDocument, generateKeywords } from "../firebase/service";
 
 export default function AddRoomModal() {
 	const { isAddRoomVisible, setIsAddRoomVisible } = useContext(AppContext);
@@ -28,6 +28,7 @@ export default function AddRoomModal() {
 					description,
 					avatar: "default",
 					members: [uid],
+					keywords: generateKeywords(name.toLowerCase()),
 				});
 			} else {
 				const imgRef = ref(storage, `AvatarRoom/${v4()}`);
@@ -38,6 +39,7 @@ export default function AddRoomModal() {
 							description,
 							avatar: val,
 							members: [uid],
+							keywords: generateKeywords(name.toLowerCase()),
 						});
 					});
 				});
