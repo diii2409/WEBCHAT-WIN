@@ -237,7 +237,7 @@ export default function ChatWindow() {
 							() => {
 								getDownloadURL(uploadTask.snapshot.ref)
 									.then(async (downloadURL) => {
-										await addDoc(collection(db, "messages"), {
+										const value = await addDoc(collection(db, "messages"), {
 											fileURL: downloadURL,
 											fileID,
 											fileName,
@@ -249,7 +249,7 @@ export default function ChatWindow() {
 											displayName,
 											createdAt: serverTimestamp(),
 										});
-										resolve();
+										resolve(value);
 									})
 									.catch((error) => {
 										console.log("error", error);
@@ -260,7 +260,8 @@ export default function ChatWindow() {
 					});
 				});
 
-				await Promise.all(uploadPromises);
+				const result = await Promise.all(uploadPromises);
+				console.log({ result });
 				setMessageFiles([]);
 			} else {
 				if (inputValue.trim() !== "") {
@@ -478,7 +479,7 @@ export default function ChatWindow() {
 
 	//*************************************************** */
 	//*************************************************** */
-
+	console.log({ messages });
 	return (
 		<WrapperStyled>
 			{selectedRoom?.id ? (
@@ -511,6 +512,7 @@ export default function ChatWindow() {
 							<div
 								onContextMenu={(e) => {
 									e.preventDefault();
+									setSelectedMessage(null);
 								}}>
 								<Dropdown overlay={contextMenu} trigger={["contextMenu"]}>
 									<div style={{ display: "flex" }}>

@@ -37,7 +37,7 @@ export default function UserInfo() {
 	} = useContext(AuthContext);
 	//*************************************************** */
 	const { setIsFindRoomOpen } = useContext(AppContext);
-	const [isModalConfirmLogOut, setIsModalConfirmLogOut] = useState(false);
+	const [isModalConfirmSginOut, setIsModalConfirmSginOut] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 
 	//*************************************************** */
@@ -45,32 +45,32 @@ export default function UserInfo() {
 	//
 	//
 	// Xử lý đăng xuất
-	const handleModalLogOutOk = async () => {
+	const handleModalSginOutOk = async () => {
 		try {
 			setIsLoading(true);
 			await signOut(auth);
-			setIsModalConfirmLogOut(false);
+			setIsModalConfirmSginOut(false);
 		} catch (error) {
 			console.log("error", error);
 		} finally {
 			setIsLoading(false);
-			setIsModalConfirmLogOut(false);
+			setIsModalConfirmSginOut(false);
 		}
 	};
-	const handleModalLogOutCancel = () => {
-		setIsModalConfirmLogOut(false);
+	const handleModalSginOutCancel = () => {
+		setIsModalConfirmSginOut(false);
 	};
 	//
 	//
 	//
 	//
 	// khu vực này xử lý khi chuột phải
-	const handleLogout = () => {
-		setIsModalConfirmLogOut(true);
+	const handleSginOut = () => {
+		setIsModalConfirmSginOut(true);
 	};
 	const contextMenu = (
 		<Menu>
-			<Menu.Item key='logOut' onClick={handleLogout}>
+			<Menu.Item key='SginOut' onClick={handleSginOut}>
 				Thay đổi tài khoản
 			</Menu.Item>
 		</Menu>
@@ -85,11 +85,11 @@ export default function UserInfo() {
 	return (
 		<div>
 			<Modal
-				open={isModalConfirmLogOut}
+				open={isModalConfirmSginOut}
 				title='Xác nhận đăng xuất tài khoản'
 				closable={false}
-				onOk={handleModalLogOutOk}
-				onCancel={handleModalLogOutCancel}>
+				onOk={handleModalSginOutOk}
+				onCancel={handleModalSginOutCancel}>
 				{isLoading ? <Spin /> : <Alert message={`${displayName}`} />}
 			</Modal>
 			<WrapperStyled>
