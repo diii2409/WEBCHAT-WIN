@@ -111,6 +111,7 @@ export default function InviteMemberModal() {
 	} = useContext(AppContext);
 	const [value, setValue] = useState([]);
 	const [form] = Form.useForm();
+	const [isLoading, setIsLoading] = useState(false);
 
 	const handleOk = async () => {
 		form.resetFields();
@@ -119,10 +120,12 @@ export default function InviteMemberModal() {
 		const newMembers = value.map((val) => val.value);
 		const updatedMembers = [...selectedRoom.members, ...newMembers];
 		try {
+			setIsLoading(true);
 			await updateDoc(doc(db, "rooms", isSelectedRoomId), {
 				members: updatedMembers,
 			});
 
+			setIsLoading(false);
 			setIsInviteMemberVisible(false);
 		} catch (error) {
 			console.error("Error inviting members:", error);
@@ -138,10 +141,11 @@ export default function InviteMemberModal() {
 	return (
 		<div>
 			<Modal
-				title='Mời thêm thành viên'
+				title={isLoading ? "Loading..." : "Mời thêm thành viên"}
 				open={isInviteMemberVisible}
 				onOk={handleOk}
 				onCancel={handleCancel}
+				okButtonProps={{ disabled: isLoading }}
 				destroyOnClose={true}>
 				<Form form={form} layout='vertical'>
 					<DebounceSelect

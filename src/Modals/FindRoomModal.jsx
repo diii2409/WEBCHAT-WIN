@@ -118,25 +118,28 @@ export default function InviteRoomModal() {
 		form.resetFields();
 		setValue([]);
 		const newRooms = value.map((opt) => opt.value);
-
-		try {
-			setIsLoading(true);
-			await Promise.all(
-				newRooms.map(async (newRoom) => {
-					const roomDocRef = doc(db, "rooms", newRoom);
-					const roomDoc = await getDoc(roomDocRef);
-					const newMembers = [...roomDoc.data().members, currentUser.uid];
-					await updateDoc(roomDocRef, {
-						members: newMembers,
-					});
-				}),
-			);
-		} catch (error) {
-			console.error("Error inviting members:", error);
-		} finally {
-			setIsLoading(false);
-			message.info("join room successfull");
-			setIsFindRoomOpen(false);
+		if (newRooms.length > 0) {
+			try {
+				setIsLoading(true);
+				await Promise.all(
+					newRooms.map(async (newRoom) => {
+						const roomDocRef = doc(db, "rooms", newRoom);
+						const roomDoc = await getDoc(roomDocRef);
+						const newMembers = [...roomDoc.data().members, currentUser.uid];
+						await updateDoc(roomDocRef, {
+							members: newMembers,
+						});
+					}),
+				);
+				message.info("join room successfull");
+				setIsLoading(false);
+				setIsFindRoomOpen(false);
+			} catch (error) {
+				message.error("join rooms fail");
+				console.error("Error join rooms:", error);
+			}
+		} else {
+			message.error("select room..!!!");
 		}
 	};
 
@@ -153,8 +156,9 @@ export default function InviteRoomModal() {
 				open={isFindRoomOpen}
 				onOk={handleOk}
 				onCancel={handleCancel}
+				okButtonProps={{ disabled: isLoading }}
 				destroyOnClose={true}>
-				<Form form={form} layout='vertical' disabled={isLoading}>
+				<Form form={form} layout='vertical'>
 					<DebounceSelect
 						mode='multiple'
 						name='search-room'
