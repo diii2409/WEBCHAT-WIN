@@ -58,11 +58,7 @@ function DebounceSelect({
 			notFoundContent={fetching ? <Spin size='small' /> : null}
 			{...props}>
 			{options.map((opt) => (
-				<Select.Option
-					key={opt.value}
-					value={opt.value}
-					title={opt.label}
-					fieldNames={opt}>
+				<Select.Option key={opt.value} value={opt.value} title={opt.label}>
 					<div style={{ display: "flex", alignItems: "center" }}>
 						<div style={{ marginRight: "10px" }}>
 							<Avatar
