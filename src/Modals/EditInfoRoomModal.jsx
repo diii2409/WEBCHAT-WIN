@@ -88,26 +88,28 @@ export default function EditInfoRoomModal() {
 	};
 
 	useEffect(() => {
-		const isVaildAvatarExtension = extensionFileImG.includes(avatarExtension);
-
-		if (!isVaildAvatarExtension || avatar?.preview !== avtRoomDefault) {
-			setErrorAvatarExtension(true);
-		} else {
-			setErrorAvatarExtension(false);
-		}
 		return () => {
 			avatar && URL.revokeObjectURL(avatar.preview);
 		};
 	}, [avatar]);
 
+	const isImageFile = (fileType) => {
+		const imageRegex = /^image\/(gif|jpe?g|png|webp)$/i;
+		return imageRegex.test(fileType);
+	};
+
 	// Xử lý hàm handlePreviewAvatarRoom
 	const handlePreviewAvatarRoom = (e) => {
 		const file = e.target.files[0];
-		const fileExtension = file.name.split(".").pop();
-		setAvatarExtension(fileExtension);
-		file.preview = URL.createObjectURL(file);
-		// e.target.value = null;
-		setAvatar(file);
+		console.log(isImageFile(file?.type));
+		if (isImageFile(file?.type)) {
+			setErrorAvatarExtension(false);
+			file.preview = URL.createObjectURL(file);
+			e.target.value = null;
+			setAvatar(file);
+		} else {
+			setErrorAvatarExtension(true);
+		}
 	};
 	return (
 		<div>
