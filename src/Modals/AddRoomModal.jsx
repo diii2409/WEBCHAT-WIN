@@ -12,11 +12,17 @@ import { addDocument, generateKeywords } from "../firebase/service";
 export default function AddRoomModal() {
 	const { isAddRoomVisible, setIsAddRoomVisible } = useContext(AppContext);
 	const [avatar, setAvatar] = useState({ preview: avtRoomDefault }); // Khởi tạo state avatar
+	const [avatarExtension, setAvatarExtension] = useState("");
+	const [erroravatarExtension, setErrorAvatarExtension] = useState(false);
+	const extensionFileImG = ["jpg", "png", "gif", "jpeg"];
 	const currentUser = useContext(AuthContext).currentUser;
 	const [isLoading, setIsLoading] = useState(false);
 	const uid = currentUser?.uid;
 	const [form] = Form.useForm();
 	const fileInputRef = useRef();
+	console.log(erroravatarExtension);
+	//********************************************* */
+	//********************************************* */
 	// Xử lý hàm handleOk
 	const handleOk = async () => {
 		try {
@@ -63,10 +69,18 @@ export default function AddRoomModal() {
 	const handleCancel = () => {
 		setIsAddRoomVisible(false);
 		form.resetFields();
+		setErrorAvatarExtension(false);
 		setAvatar({ preview: avtRoomDefault }); // Reset state avatar về giá trị mặc định
 	};
 
 	useEffect(() => {
+		const isVaildAvatarExtension = extensionFileImG.includes(avatarExtension);
+
+		if (!isVaildAvatarExtension || avatar?.preview !== avtRoomDefault) {
+			setErrorAvatarExtension(true);
+		} else {
+			setErrorAvatarExtension(false);
+		}
 		return () => {
 			avatar && URL.revokeObjectURL(avatar.preview);
 		};
@@ -74,9 +88,9 @@ export default function AddRoomModal() {
 
 	// Xử lý hàm handlePreviewAvatarRoom
 	const handlePreviewAvatarRoom = (e) => {
-		console.log("1111");
 		const file = e.target.files[0];
-
+		const fileExtension = file.name.split(".").pop();
+		setAvatarExtension(fileExtension);
 		file.preview = URL.createObjectURL(file);
 		// e.target.value = null;
 		setAvatar(file);
@@ -89,10 +103,19 @@ export default function AddRoomModal() {
 				open={isAddRoomVisible}
 				closable={false}
 				onOk={handleOk}
+				okButtonProps={{ disabled: erroravatarExtension }}
 				onCancel={handleCancel}>
 				<Form form={form} layout='vertical' disabled={isLoading}>
 					<Form.Item
-						label='Avatar phòng'
+						label={
+							erroravatarExtension ? (
+								<span style={{ color: "red" }}>
+									Vui lòng chọn đúng file ảnh
+								</span>
+							) : (
+								"Avatar phòng"
+							)
+						}
 						style={{
 							textAlign: "center",
 							display: "flex",

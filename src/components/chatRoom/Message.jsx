@@ -49,7 +49,7 @@ export default function Message({
 				{fileType === "video" && (
 					<video src={fileURL} controls style={{ maxWidth: "320px" }} />
 				)}
-				{fileType !== "image" && fileType !== "video" && (
+				{!text && fileType !== "image" && fileType !== "video" && (
 					<Card
 						size='small'
 						title={fileType}

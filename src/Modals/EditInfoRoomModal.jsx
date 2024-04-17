@@ -20,7 +20,10 @@ export default function EditInfoRoomModal() {
 		useContext(AppContext);
 	const [avatar, setAvatar] = useState({
 		preview: avtRoomDefault,
-	}); // Khởi tạo state avatar
+	});
+	const [avatarExtension, setAvatarExtension] = useState("");
+	const [erroravatarExtension, setErrorAvatarExtension] = useState(false);
+	const extensionFileImG = ["jpg", "png", "gif", "jpeg"];
 	const currentUser = useContext(AuthContext).currentUser;
 	const uid = currentUser?.uid;
 	const [isLoading, setIsLoading] = useState(false);
@@ -80,10 +83,18 @@ export default function EditInfoRoomModal() {
 	const handleCancel = () => {
 		setIsEditInfoRoomOpen(false);
 		form.resetFields();
+		setErrorAvatarExtension(false);
 		setAvatar({ preview: avtRoomDefault }); // Reset state avatar về giá trị mặc định
 	};
 
 	useEffect(() => {
+		const isVaildAvatarExtension = extensionFileImG.includes(avatarExtension);
+
+		if (!isVaildAvatarExtension || avatar?.preview !== avtRoomDefault) {
+			setErrorAvatarExtension(true);
+		} else {
+			setErrorAvatarExtension(false);
+		}
 		return () => {
 			avatar && URL.revokeObjectURL(avatar.preview);
 		};
@@ -91,9 +102,9 @@ export default function EditInfoRoomModal() {
 
 	// Xử lý hàm handlePreviewAvatarRoom
 	const handlePreviewAvatarRoom = (e) => {
-		console.log("222");
 		const file = e.target.files[0];
-
+		const fileExtension = file.name.split(".").pop();
+		setAvatarExtension(fileExtension);
 		file.preview = URL.createObjectURL(file);
 		// e.target.value = null;
 		setAvatar(file);
@@ -108,7 +119,15 @@ export default function EditInfoRoomModal() {
 				onCancel={handleCancel}>
 				<Form form={form} layout='vertical' disabled={isLoading}>
 					<Form.Item
-						label='Avatar phòng'
+						label={
+							erroravatarExtension ? (
+								<span style={{ color: "red" }}>
+									Vui lòng chọn đúng file ảnh
+								</span>
+							) : (
+								"Avatar phòng"
+							)
+						}
 						style={{
 							textAlign: "center",
 							display: "flex",

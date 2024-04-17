@@ -369,6 +369,29 @@ export default function ChatWindow() {
 	//
 	//
 	//
+	// Xử lý lưu file khi file lớn ( dùng check % kki tải )
+	// const handleSaveFile = async () => {
+	// 	if (!selectedMessage || !selectedMessage?.fileURL) {
+	// 		message.error("Không có file để lưu.");
+	// 		return;
+	// 	}
+	// 	const xhr = new XMLHttpRequest();
+	// 	xhr.responseType = "blob";
+	// 	xhr.onload = (event) => {
+	// 		const blob = xhr.response;
+	// 		const fileURL = URL.createObjectURL(blob);
+
+	// 		const link = document.createElement("a");
+	// 		link.href = fileURL;
+	// 		link.download = `${selectedMessage.fileName}.${selectedMessage.fileExtension}`;
+	// 		document.body.appendChild(link);
+	// 		link.click();
+	// 		document.body.removeChild(link);
+	// 	};
+	// 	xhr.open("GET", selectedMessage?.fileURL);
+	// 	xhr.send();
+	// };
+	//
 	// Xử lý lưu file
 	const handleSaveFile = async () => {
 		if (!selectedMessage || !selectedMessage?.fileURL) {
@@ -376,7 +399,7 @@ export default function ChatWindow() {
 			return;
 		}
 
-		const file = await fetch(selectedMessage?.file);
+		const file = await fetch(selectedMessage?.fileURL);
 		const fileBlog = await file.blob();
 		const fileURL = URL.createObjectURL(fileBlog);
 
