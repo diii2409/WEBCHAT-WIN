@@ -9,6 +9,7 @@ import ChatRoom from "./components/chatRoom/index.jsx";
 
 import { useContext } from "react";
 import AddRoomModal from "./Modals/AddRoomModal.jsx";
+import EditInfoRoomModal from "./Modals/EditInfoRoomModal.jsx";
 import FindRoomModal from "./Modals/FindRoomModal.jsx";
 import InviteMemberModal from "./Modals/InviteMemberModal.jsx";
 import { AuthContext } from "./context/AuthContext";
@@ -34,6 +35,7 @@ function App() {
 				<Route path='/' element={!isCurrentUser ? <ChatRoom /> : <Login />} />
 			</Routes>
 			<AddRoomModal />
+			<EditInfoRoomModal />
 			<InviteMemberModal />
 			<FindRoomModal />
 		</Router>

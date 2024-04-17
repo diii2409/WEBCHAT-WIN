@@ -9,13 +9,13 @@ export const AppContext = createContext();
 export const AppProvider = ({ children }) => {
 	const [isAddRoomVisible, setIsAddRoomVisible] = useState(false);
 	const [isFindRoomOpen, setIsFindRoomOpen] = useState(false);
+	const [isEditInfoRoomOpen, setIsEditInfoRoomOpen] = useState(false);
 	const [isInviteMemberVisible, setIsInviteMemberVisible] = useState(false);
 	const [isSelectedRoomId, setIsSelectedRoomId] = useState("");
 	const [members, setMembers] = useState([]);
-
 	const currentUser = useContext(AuthContext).currentUser;
 	const uid = currentUser?.uid;
-
+	console.log(isEditInfoRoomOpen);
 	const roomsCondition = useMemo(() => {
 		return {
 			fieldName: "members",
@@ -62,6 +62,8 @@ export const AppProvider = ({ children }) => {
 				setIsSelectedRoomId,
 				isInviteMemberVisible,
 				setIsInviteMemberVisible,
+				isEditInfoRoomOpen,
+				setIsEditInfoRoomOpen,
 			}}>
 			{children}
 		</AppContext.Provider>

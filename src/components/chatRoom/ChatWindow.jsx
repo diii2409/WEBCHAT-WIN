@@ -132,31 +132,32 @@ const FormStyled = styled(Form)`
 `;
 
 export default function ChatWindow() {
-	const { members, selectedRoom, setIsInviteMemberVisible } =
-		useContext(AppContext);
-
+	const {
+		members,
+		selectedRoom,
+		setIsInviteMemberVisible,
+		setIsEditInfoRoomOpen,
+	} = useContext(AppContext);
 	const { currentUser } = useContext(AuthContext);
-
+	//*************************************************** */
 	const uid = currentUser?.uid;
 	const photoURL = currentUser?.photoURL;
-
 	const displayName = currentUser?.displayName;
-
-	const [inputValue, setInputValue] = useState("");
+	//*************************************************** */
 	const [form] = Form.useForm();
 	const [formEditMessage] = Form.useForm();
-
+	//*************************************************** */
+	const [inputValue, setInputValue] = useState("");
 	const [isInputDefault, setIsInputDefault] = useState(true);
 	const [messageImgs, setMessageImgs] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
-	const inputRef = useRef();
-
 	const [selectedMessage, setSelectedMessage] = useState(null);
-
-	const messageListRef = useRef(null);
-
 	const [isOpenModalEditMessage, setIsOpenModalEditMessage] = useState(false);
+	//*************************************************** */
+	const messageListRef = useRef(null);
+	const inputRef = useRef();
 	const inputNewMessageRef = useRef(null);
+	//*************************************************** */
 
 	const handleSetStationUInput = () => {
 		setIsInputDefault(!isInputDefault);
@@ -379,8 +380,13 @@ export default function ChatWindow() {
 		document.body.removeChild(link);
 	};
 
-	// khu vực thiết kế menu khi click chuột phải
-	const contextMenu = (
+	// mở Modal Edit Info Room
+	const handleEidInfoRoom = () => {
+		setIsEditInfoRoomOpen(true);
+	};
+
+	// khu vực thiết kế menu khi click chuột phải khi ấn vào tin nhắn
+	const contextMenu = selectedMessage ? (
 		<Menu>
 			{selectedMessage?.img && (
 				<Menu.Item key='saveImg' onClick={handleSaveImg}>
@@ -394,6 +400,12 @@ export default function ChatWindow() {
 			)}
 			<Menu.Item key='delete' onClick={handleDeleteMessage}>
 				Xóa tin nhắn
+			</Menu.Item>
+		</Menu>
+	) : (
+		<Menu>
+			<Menu.Item key='editInfoRoom' onClick={handleEidInfoRoom}>
+				Thay đổi thông tin phòng
 			</Menu.Item>
 		</Menu>
 	);
@@ -427,20 +439,29 @@ export default function ChatWindow() {
 					</Modal>
 					<HeaderStyled>
 						<div className='header__info_avt'>
-							<Avatar
-								className='header__avt'
-								size={"large"}
-								src={
-									selectedRoom?.avatar === "default"
-										? avatarDefault
-										: selectedRoom?.avatar
-								}
-							/>
-							<div className='header__info'>
-								<p className='header__title'>{selectedRoom?.name}</p>
-								<span className='header__discription'>
-									{selectedRoom.description}
-								</span>
+							<div
+								onContextMenu={(e) => {
+									e.preventDefault();
+								}}>
+								<Dropdown overlay={contextMenu} trigger={["contextMenu"]}>
+									<div style={{ display: "flex" }}>
+										<Avatar
+											className='header__avt'
+											size={"large"}
+											src={
+												selectedRoom?.avatar === "default"
+													? avatarDefault
+													: selectedRoom?.avatar
+											}
+										/>
+										<div className='header__info'>
+											<p className='header__title'>{selectedRoom?.name}</p>
+											<span className='header__discription'>
+												{selectedRoom.description}
+											</span>
+										</div>
+									</div>
+								</Dropdown>
 							</div>
 						</div>
 						<ButtonGroupStyled>
