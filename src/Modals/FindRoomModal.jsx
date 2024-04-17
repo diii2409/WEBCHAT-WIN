@@ -58,11 +58,7 @@ function DebounceSelect({
 			notFoundContent={fetching ? <Spin size='small' /> : null}
 			{...props}>
 			{options.map((opt) => (
-				<Select.Option
-					key={opt.value}
-					value={opt.value}
-					title={opt.label}
-					fieldNames={opt}>
+				<Select.Option key={opt.value} value={opt.value} title={opt.label}>
 					<div style={{ display: "flex", alignItems: "center" }}>
 						<div style={{ marginRight: "10px" }}>
 							<Avatar
@@ -86,7 +82,7 @@ function DebounceSelect({
 	);
 }
 // **********************************************************
-const fetchUserList = async (search, currentUser) => {
+const fetchRoomList = async (search, currentUser) => {
 	try {
 		let q = collection(db, "rooms");
 		if (search) {
@@ -111,7 +107,7 @@ const fetchUserList = async (search, currentUser) => {
 	}
 };
 // **********************************************************
-export default function InviteMemberModal() {
+export default function InviteRoomModal() {
 	const { isFindRoomOpen, setIsFindRoomOpen, rooms } = useContext(AppContext);
 	const { currentUser } = useContext(AuthContext);
 	const [value, setValue] = useState([]);
@@ -165,7 +161,7 @@ export default function InviteMemberModal() {
 						label='Tên phòng'
 						value={value}
 						placeholder='Nhập tên phòng'
-						fetchOptions={fetchUserList}
+						fetchOptions={fetchRoomList}
 						onChange={(newValue) => setValue(newValue)}
 						style={{ width: "100%" }}
 						currentUser={currentUser}
