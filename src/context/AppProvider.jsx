@@ -15,7 +15,6 @@ export const AppProvider = ({ children }) => {
 	const [members, setMembers] = useState([]);
 	const currentUser = useContext(AuthContext).currentUser;
 	const uid = currentUser?.uid;
-	console.log(isEditInfoRoomOpen);
 	const roomsCondition = useMemo(() => {
 		return {
 			fieldName: "members",

@@ -1,7 +1,12 @@
 import { UploadOutlined } from "@ant-design/icons";
 import { Avatar, Button, Form, Input, Modal, message } from "antd";
 import { doc, updateDoc } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import {
+	deleteObject,
+	getDownloadURL,
+	ref,
+	uploadBytes,
+} from "firebase/storage";
 import { useContext, useEffect, useState } from "react";
 import { v4 } from "uuid";
 import avtRoomDefault from "../../public/roomDefualt.svg";
@@ -37,7 +42,14 @@ export default function EditInfoRoomModal() {
 					keywords: generateKeywords(name.toLowerCase()),
 				});
 			} else {
-				const imgRef = ref(storage, `AvatarRoom/${v4()}`);
+				if (selectedRoom?.avatar !== "default") {
+					const imgRef = ref(storage, `AvatarRoom/${selectedRoom?.avatarId}`);
+					await deleteObject(imgRef).then(() => {
+						message.info("remove avatar room successfull");
+					});
+				}
+				const avatarId = v4();
+				const imgRef = ref(storage, `AvatarRoom/${avatarId}`);
 				await uploadBytes(imgRef, avatar).then((data) => {
 					getDownloadURL(data.ref).then((val) => {
 						const roomRef = doc(db, "rooms", selectedRoom.id);
@@ -45,6 +57,7 @@ export default function EditInfoRoomModal() {
 							name,
 							description,
 							avatar: val,
+							avatarId,
 							members: [uid],
 							keywords: generateKeywords(name.toLowerCase()),
 						});
@@ -53,12 +66,12 @@ export default function EditInfoRoomModal() {
 			}
 			form.resetFields();
 			setAvatar({ preview: avtRoomDefault });
+			message.info("Edit info room successfull");
+			setIsEditInfoRoomOpen(false);
 		} catch (error) {
 			console.log("error", error);
 		} finally {
 			setIsLoading(false);
-			setIsEditInfoRoomOpen(false);
-			message.info("Edit info room successfull");
 		}
 	};
 
@@ -78,8 +91,8 @@ export default function EditInfoRoomModal() {
 	// Xử lý hàm handlePreviewAvatarRoom
 	const handlePreviewAvatarRoom = (e) => {
 		const file = e.target.files[0];
-
 		file.preview = URL.createObjectURL(file);
+		console.log("filePreview", file.preview);
 		setAvatar(file);
 	};
 	return (

@@ -20,12 +20,13 @@ import {
 	updateDoc,
 	where,
 } from "firebase/firestore";
+import { deleteObject, ref } from "firebase/storage";
 import { useContext, useState } from "react";
 import styled from "styled-components";
 import avatarDefault from "../../../public/vite.svg";
 import { AppContext } from "../../context/AppProvider";
 import { AuthContext } from "../../context/AuthContext";
-import { db } from "../../firebase/config";
+import { db, storage } from "../../firebase/config";
 const { Panel } = Collapse;
 const { Link } = Typography;
 
@@ -91,14 +92,20 @@ export default function RoomList() {
 			await Promise.all(deletePromises);
 
 			// remove rooms
+			if (selectedRoom?.avatar !== "default") {
+				const imgRef = ref(storage, `AvatarRoom/${selectedRoom?.avatarId}`);
+				await deleteObject(imgRef).then(() => {
+					message.info("remove avatar room successfull");
+				});
+			}
 			await deleteDoc(doc(db, "rooms", selectedRoom.id));
+			message.info("remove room successfull");
 		} catch (error) {
 			console.error("error : ", error);
 		} finally {
 			setIsLoading(false);
 			setSelectedRoom(null);
 			setIsModalConfirmDeleteRoom(false);
-			message.info("remove room successfull");
 		}
 	};
 	const handleModalDeleteRoomCancel = () => {
@@ -124,13 +131,13 @@ export default function RoomList() {
 			await updateDoc(seletedRoomRef, {
 				members: newMemebers,
 			});
+			message.info("leave room successfull");
 		} catch (error) {
 			console.log("error", error);
 		} finally {
 			setIsLoading(false);
 			setSelectedRoom(null);
 			setIsModalConfirmLeaveRoom(false);
-			message.info("leave room successfull");
 		}
 	};
 	const handleModalLeaveRoomCancel = () => {

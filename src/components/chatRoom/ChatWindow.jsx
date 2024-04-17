@@ -157,6 +157,7 @@ export default function ChatWindow() {
 	const messageListRef = useRef(null);
 	const inputRef = useRef();
 	const inputNewMessageRef = useRef(null);
+	const fileInputRef = useRef();
 	//*************************************************** */
 
 	const handleSetStationUInput = () => {
@@ -254,7 +255,6 @@ export default function ChatWindow() {
 		}
 	};
 
-	const fileInputRef = useRef();
 	const handleUploadChange = (event) => {
 		setIsLoading(true);
 		const fileList = Array.from(event.target.files);
@@ -341,13 +341,13 @@ export default function ChatWindow() {
 			await updateDoc(messageDocRef, {
 				text: newMessage,
 			});
+			message.info("edit mess successfull");
+			formEditMessage.resetFields();
 		} catch (error) {
 			console.log("error", error);
 		} finally {
 			setIsLoading(false);
 			setSelectedMessage(null);
-			formEditMessage.resetFields();
-			message.info("edit mess successfull");
 			setIsOpenModalEditMessage(false);
 		}
 	};
@@ -415,7 +415,7 @@ export default function ChatWindow() {
 			{selectedRoom?.id ? (
 				<>
 					<Modal
-						title='Chỉnh sửa tin nhắn'
+						title={isLoading ? "Loading.." : "Chỉnh sửa tin nhắn"}
 						open={isOpenModalEditMessage}
 						onOk={handleModalEditMessageOk}
 						onCancel={handleModalEditMessageCancel}

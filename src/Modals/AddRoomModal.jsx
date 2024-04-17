@@ -1,5 +1,5 @@
 import { UploadOutlined } from "@ant-design/icons";
-import { Avatar, Button, Form, Input, Modal } from "antd";
+import { Avatar, Button, Form, Input, Modal, message } from "antd";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { useContext, useEffect, useState } from "react";
 import { v4 } from "uuid";
@@ -13,12 +13,14 @@ export default function AddRoomModal() {
 	const { isAddRoomVisible, setIsAddRoomVisible } = useContext(AppContext);
 	const [avatar, setAvatar] = useState({ preview: avtRoomDefault }); // Khởi tạo state avatar
 	const currentUser = useContext(AuthContext).currentUser;
+	const [isLoading, setIsLoading] = useState(false);
 	const uid = currentUser?.uid;
 	const [form] = Form.useForm();
 
 	// Xử lý hàm handleOk
 	const handleOk = async () => {
 		try {
+			setIsLoading(true);
 			await form.validateFields();
 			let { name, description } = form.getFieldsValue();
 			description = description ? description : " ";
@@ -31,13 +33,15 @@ export default function AddRoomModal() {
 					keywords: generateKeywords(name.toLowerCase()),
 				});
 			} else {
-				const imgRef = ref(storage, `AvatarRoom/${v4()}`);
+				const avatarId = v4();
+				const imgRef = ref(storage, `AvatarRoom/${avatarId}`);
 				await uploadBytes(imgRef, avatar).then((data) => {
 					getDownloadURL(data.ref).then((val) => {
 						addDocument("rooms", {
 							name,
 							description,
 							avatar: val,
+							avatarId: avatarId,
 							members: [uid],
 							keywords: generateKeywords(name.toLowerCase()),
 						});
@@ -45,10 +49,13 @@ export default function AddRoomModal() {
 				});
 			}
 			setIsAddRoomVisible(false);
+			message.info("create room cuccessfull");
 			form.resetFields();
 			setAvatar({ preview: avtRoomDefault });
 		} catch (error) {
 			console.log("error", error);
+		} finally {
+			setIsLoading(false);
 		}
 	};
 
@@ -76,12 +83,12 @@ export default function AddRoomModal() {
 	return (
 		<div>
 			<Modal
-				title='Tạo phòng'
+				title={isLoading ? "Loading..." : "Tạo phòng"}
 				open={isAddRoomVisible}
 				closable={false}
 				onOk={handleOk}
 				onCancel={handleCancel}>
-				<Form form={form} layout='vertical'>
+				<Form form={form} layout='vertical' disabled={isLoading}>
 					<Form.Item
 						label='Avatar phòng'
 						style={{
