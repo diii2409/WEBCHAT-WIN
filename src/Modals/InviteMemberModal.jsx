@@ -118,7 +118,6 @@ export default function InviteMemberModal() {
 
 		const newMembers = value.map((val) => val.value);
 		const updatedMembers = [...selectedRoom.members, ...newMembers];
-		console.log("newMember", newMembers);
 		try {
 			await updateDoc(doc(db, "rooms", isSelectedRoomId), {
 				members: updatedMembers,
