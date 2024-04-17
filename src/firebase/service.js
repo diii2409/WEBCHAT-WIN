@@ -10,8 +10,6 @@ export const addDocument = async (collectionName, data) => {
 			...data,
 			createdAt: timestamp,
 		});
-
-		console.log("Document added successfully");
 	} catch (error) {
 		console.error("Error adding document: ", error);
 	}

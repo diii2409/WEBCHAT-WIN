@@ -17,8 +17,14 @@ function DebounceSelect({
 	curMembers,
 	...props
 }) {
+	//*************************************************** */
 	const [fetching, setFetching] = useState(false);
 	const [options, setOptions] = useState([]);
+
+	//*************************************************** */
+	//
+	//
+	// viết gàm debounce bằng setimeout
 	const debounce = (func, wait) => {
 		let timeoutId;
 		return (...args) => {
@@ -28,7 +34,9 @@ function DebounceSelect({
 			}, wait);
 		};
 	};
-
+	//
+	//
+	//viết hàm đém ngược vài giây là search thong tin
 	const debounceFetcher = useMemo(() => {
 		const loadOptions = (value) => {
 			setOptions([]);

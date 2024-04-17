@@ -35,14 +35,16 @@ export default function UserInfo() {
 	const {
 		currentUser: { photoURL, displayName },
 	} = useContext(AuthContext);
-
+	//*************************************************** */
 	const { setIsFindRoomOpen } = useContext(AppContext);
 	const [isModalConfirmLogOut, setIsModalConfirmLogOut] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
-	// khu vực này xử lý khi chuột phải
-	const handleLogout = () => {
-		setIsModalConfirmLogOut(true);
-	};
+
+	//*************************************************** */
+	//*************************************************** */
+	//
+	//
+	// Xử lý đăng xuất
 	const handleModalLogOutOk = async () => {
 		try {
 			setIsLoading(true);
@@ -58,7 +60,14 @@ export default function UserInfo() {
 	const handleModalLogOutCancel = () => {
 		setIsModalConfirmLogOut(false);
 	};
-
+	//
+	//
+	//
+	//
+	// khu vực này xử lý khi chuột phải
+	const handleLogout = () => {
+		setIsModalConfirmLogOut(true);
+	};
 	const contextMenu = (
 		<Menu>
 			<Menu.Item key='logOut' onClick={handleLogout}>
@@ -66,7 +75,9 @@ export default function UserInfo() {
 			</Menu.Item>
 		</Menu>
 	);
-
+	//
+	//
+	//
 	// khu vực xử lý Modal tìm phòng
 	const handleFindRoom = () => {
 		setIsFindRoomOpen(true);
