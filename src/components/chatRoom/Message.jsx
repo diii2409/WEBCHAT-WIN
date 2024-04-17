@@ -1,4 +1,5 @@
-import { Avatar, Typography } from "antd";
+import { FileTextTwoTone } from "@ant-design/icons";
+import { Avatar, Card, Typography } from "antd";
 import React from "react";
 import styled from "styled-components";
 
@@ -26,7 +27,10 @@ export default function Message({
 	displayName,
 	createdAt,
 	photoUrl,
-	img,
+	fileURL,
+	fileName,
+	fileExtension,
+	fileType,
 }) {
 	return (
 		<WrapperStyled>
@@ -37,8 +41,34 @@ export default function Message({
 			</div>
 			<div>
 				{text && <Typography.Text className='content'>{text}</Typography.Text>}
-				{img && (
-					<img src={img} style={{ maxWidth: "320px", margin: "10px" }}></img>
+				{fileType === "image" && (
+					<img
+						src={fileURL}
+						style={{ maxWidth: "320px", margin: "10px" }}></img>
+				)}
+				{fileType === "video" && (
+					<video src={fileURL} controls style={{ maxWidth: "320px" }} />
+				)}
+				{fileType !== "image" && fileType !== "video" && (
+					<Card
+						size='small'
+						title={fileType}
+						style={{
+							width: 300,
+							backgroundColor: "rgba(229, 239, 255, 0.2)",
+							margin: "10px",
+							border: "1px solid #999",
+							color: "rgb(22, 119, 255)",
+						}}>
+						<p
+							style={{
+								whiteSpace: "nowrap",
+								overflow: "hidden",
+								textOverflow: "ellipsis",
+							}}>
+							<FileTextTwoTone /> {fileName}.{fileExtension}
+						</p>
+					</Card>
 				)}
 			</div>
 		</WrapperStyled>
