@@ -1,20 +1,23 @@
-import { Avatar, Form, Modal, Select, Spin } from "antd";
+import { Avatar, Form, Modal, Select, Spin, Typography, message } from "antd";
 import {
 	collection,
 	doc,
+	getDoc,
 	getDocs,
 	query,
 	updateDoc,
 	where,
 } from "firebase/firestore";
 import { useContext, useEffect, useMemo, useState } from "react";
+import avatarDefault from "../../public/vite.svg";
 import { AppContext } from "../context/AppProvider";
+import { AuthContext } from "../context/AuthContext";
 import { db } from "../firebase/config";
-
 function DebounceSelect({
 	fetchOptions,
 	debounceTimeout = 300,
 	curMembers,
+	currentUser,
 	...props
 }) {
 	const [fetching, setFetching] = useState(false);
@@ -32,8 +35,7 @@ function DebounceSelect({
 		const loadOptions = (value) => {
 			setOptions([]);
 			setFetching(true);
-
-			fetchOptions(value, curMembers).then((newOptions) => {
+			fetchOptions(value, currentUser).then((newOptions) => {
 				setOptions(newOptions);
 				setFetching(false);
 			});
@@ -56,18 +58,35 @@ function DebounceSelect({
 			notFoundContent={fetching ? <Spin size='small' /> : null}
 			{...props}>
 			{options.map((opt) => (
-				<Select.Option key={opt.value} value={opt.value} title={opt.label}>
-					<Avatar size='small' src={opt.photoURL}>
-						{opt.photoURL ? "" : opt.label?.charAt(0)?.toUpperCase()}
-					</Avatar>
-					<Typography.Text>{` ${opt.label}`}</Typography.Text>
+				<Select.Option
+					key={opt.value}
+					value={opt.value}
+					title={opt.label}
+					fieldNames={opt}>
+					<div style={{ display: "flex", alignItems: "center" }}>
+						<div style={{ marginRight: "10px" }}>
+							<Avatar
+								size='small'
+								src={
+									opt?.photoURL === "default" ? avatarDefault : opt?.photoURL
+								}>
+								{opt.photoURL ? "" : opt.label?.charAt(0)?.toUpperCase()}
+							</Avatar>
+							<Typography.Text>{` ${opt.label}`}</Typography.Text>
+						</div>
+						<div style={{ marginLeft: "auto" }}>
+							<Typography.Text>
+								{` ${opt.members.length} members`}{" "}
+							</Typography.Text>
+						</div>
+					</div>
 				</Select.Option>
 			))}
 		</Select>
 	);
 }
 // **********************************************************
-const fetchUserList = async (search, curMembers) => {
+const fetchUserList = async (search, currentUser) => {
 	try {
 		let q = collection(db, "rooms");
 		if (search) {
@@ -77,16 +96,15 @@ const fetchUserList = async (search, curMembers) => {
 			);
 		}
 		const snapshot = await getDocs(q);
-		console.log(snapshot);
-		const userList = snapshot.docs
+		const roomList = snapshot.docs
 			.map((doc) => ({
 				label: doc.data().name,
-				value: doc.data().uid,
+				value: doc.id,
 				photoURL: doc.data().avatar,
+				members: doc.data().members,
 			}))
-			.filter((opt) => !curMembers.includes(opt.value));
-
-		return userList;
+			.filter((opt) => !opt.members.includes(currentUser.uid));
+		return roomList;
 	} catch (error) {
 		console.error("Error fetching user list:", error);
 		return [];
@@ -94,26 +112,35 @@ const fetchUserList = async (search, curMembers) => {
 };
 // **********************************************************
 export default function InviteMemberModal() {
-	const { isFindRoomOpen, setIsFindRoomOpen, isSelectedRoomId, selectedRoom } =
-		useContext(AppContext);
+	const { isFindRoomOpen, setIsFindRoomOpen, rooms } = useContext(AppContext);
+	const { currentUser } = useContext(AuthContext);
 	const [value, setValue] = useState([]);
 	const [form] = Form.useForm();
+	const [isLoading, setIsLoading] = useState(false);
 
 	const handleOk = async () => {
 		form.resetFields();
 		setValue([]);
+		const newRooms = value.map((opt) => opt.value);
 
-		const newMembers = value.map((val) => val.value);
-		const updatedMembers = [...selectedRoom.members, ...newMembers];
-		console.log("newMember", newMembers);
 		try {
-			await updateDoc(doc(db, "rooms", isSelectedRoomId), {
-				members: updatedMembers,
-			});
-
-			setIsFindRoomOpen(false);
+			setIsLoading(true);
+			await Promise.all(
+				newRooms.map(async (newRoom) => {
+					const roomDocRef = doc(db, "rooms", newRoom);
+					const roomDoc = await getDoc(roomDocRef);
+					const newMembers = [...roomDoc.data().members, currentUser.uid];
+					await updateDoc(roomDocRef, {
+						members: newMembers,
+					});
+				}),
+			);
 		} catch (error) {
 			console.error("Error inviting members:", error);
+		} finally {
+			setIsLoading(false);
+			message.info("join room successfull");
+			setIsFindRoomOpen(false);
 		}
 	};
 
@@ -126,22 +153,22 @@ export default function InviteMemberModal() {
 	return (
 		<div>
 			<Modal
-				title='Tìm phòng'
-				open={false}
+				title={isLoading ? "Loading..." : "Tìm phòng"}
+				open={isFindRoomOpen}
 				onOk={handleOk}
 				onCancel={handleCancel}
 				destroyOnClose={true}>
-				<Form form={form} layout='vertical'>
+				<Form form={form} layout='vertical' disabled={isLoading}>
 					<DebounceSelect
 						mode='multiple'
-						name='search-user'
+						name='search-room'
 						label='Tên phòng'
 						value={value}
 						placeholder='Nhập tên phòng'
 						fetchOptions={fetchUserList}
 						onChange={(newValue) => setValue(newValue)}
 						style={{ width: "100%" }}
-						curMembers={selectedRoom?.uid}
+						currentUser={currentUser}
 					/>
 				</Form>
 			</Modal>

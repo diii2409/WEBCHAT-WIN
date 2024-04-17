@@ -307,6 +307,9 @@ export default function ChatWindow() {
 				return;
 			}
 			if (!selectedMessage?.img) {
+				selectedRoom?.avatar === "default"
+					? avatarDefault
+					: selectedRoom?.avatar;
 				await deleteDoc(doc(db, "messages", selectedMessage.id));
 				message.info("remove mess successfull");
 			} else {

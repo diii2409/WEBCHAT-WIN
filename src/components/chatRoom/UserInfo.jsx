@@ -13,6 +13,8 @@ import { useContext, useState } from "react";
 import styled from "styled-components";
 import { auth } from "../../firebase/config";
 
+import { AppContext } from "../../context/AppProvider";
+
 import { AuthContext } from "../../context/AuthContext";
 
 const { Text } = Typography;
@@ -34,6 +36,7 @@ export default function UserInfo() {
 		currentUser: { photoURL, displayName },
 	} = useContext(AuthContext);
 
+	const { setIsFindRoomOpen } = useContext(AppContext);
 	const [isModalConfirmLogOut, setIsModalConfirmLogOut] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	// khu vực này xử lý khi chuột phải
@@ -64,6 +67,10 @@ export default function UserInfo() {
 		</Menu>
 	);
 
+	// khu vực xử lý Modal tìm phòng
+	const handleFindRoom = () => {
+		setIsFindRoomOpen(true);
+	};
 	return (
 		<div>
 			<Modal
@@ -85,7 +92,9 @@ export default function UserInfo() {
 						</div>
 					</Dropdown>
 				</div>
-				<Button ghost>Tìm phòng</Button>
+				<Button ghost onClick={handleFindRoom}>
+					Tìm phòng
+				</Button>
 			</WrapperStyled>
 		</div>
 	);
