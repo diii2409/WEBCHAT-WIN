@@ -7,14 +7,19 @@ import { AuthContext } from "./AuthContext.jsx";
 export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
+	const currentUser = useContext(AuthContext).currentUser;
+	//*************************************************** */
 	const [isAddRoomVisible, setIsAddRoomVisible] = useState(false);
 	const [isFindRoomOpen, setIsFindRoomOpen] = useState(false);
 	const [isEditInfoRoomOpen, setIsEditInfoRoomOpen] = useState(false);
 	const [isInviteMemberVisible, setIsInviteMemberVisible] = useState(false);
 	const [isSelectedRoomId, setIsSelectedRoomId] = useState("");
 	const [members, setMembers] = useState([]);
-	const currentUser = useContext(AuthContext).currentUser;
+	//*************************************************** */
+	//*************************************************** */
 	const uid = currentUser?.uid;
+	//
+	// Tạo điều kiện tải các phòng chat của người dùng
 	const roomsCondition = useMemo(() => {
 		return {
 			fieldName: "members",
@@ -22,9 +27,13 @@ export const AppProvider = ({ children }) => {
 			compareValues: uid,
 		};
 	}, [uid]);
-
+	//
+	//
+	// tải các phòng
 	const rooms = useFirestore("rooms", roomsCondition);
-
+	//
+	//
+	// Tìm ra phòng người dùng chọn vào
 	const selectedRoom = useMemo(() => {
 		return rooms.find((room) => room.id === isSelectedRoomId);
 	}, [rooms, isSelectedRoomId]);
@@ -47,6 +56,9 @@ export const AppProvider = ({ children }) => {
 			};
 		}
 	}, [uid, selectedRoom]);
+
+	//*************************************************** */
+	//*************************************************** */
 	return (
 		<AppContext.Provider
 			value={{

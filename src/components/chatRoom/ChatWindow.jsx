@@ -48,6 +48,7 @@ import { db, storage } from "../../firebase/config";
 import useFirestore from "../../hook/useFireStore";
 import Message from "./Message";
 
+// chỉnh css cho các phần tử bên trong
 const HeaderStyled = styled.div`
 	display: flex;
 	justify-content: space-between;
@@ -130,6 +131,9 @@ const FormStyled = styled(Form)`
 		}
 	}
 `;
+//*************************************************** */
+//*************************************************** */
+//*************************************************** */
 
 export default function ChatWindow() {
 	const {
@@ -159,31 +163,49 @@ export default function ChatWindow() {
 	const inputNewMessageRef = useRef(null);
 	const fileInputRef = useRef();
 	//*************************************************** */
-
+	//*************************************************** */
+	//
+	//
+	//
+	//
+	// xử lý input
+	// chuyển trạng thái thanh input
 	const handleSetStationUInput = () => {
 		setIsInputDefault(!isInputDefault);
 	};
-
-	useEffect(() => {
-		const handleKeyDown = (event) => {
-			if (event.keyCode === 27 && !isLoading) {
-				handleSetStationUInput();
-				handleModalEditMessageCancel();
-			}
-		};
-
-		if (!isInputDefault || !isLoading) {
-			document.addEventListener("keydown", handleKeyDown);
-		}
-
-		return () => {
-			document.removeEventListener("keydown", handleKeyDown);
-		};
-	}, [isInputDefault, isLoading]);
-
+	// lưu nội dung input
 	const handleInputChange = (e) => {
 		setInputValue(e.target.value);
 	};
+	// xử lý khi thay đổi ảnh đưa lên để gửi
+	const handleUploadChange = (event) => {
+		setIsLoading(true);
+		const fileList = Array.from(event.target.files);
+		setMessageImgs(fileList, ...messageImgs);
+		event.target.value = null;
+		setIsLoading(false);
+	};
+	//
+	//
+	//
+	// 2 hàm dung để thực hiện việc kéo thả ảnh vào
+	const handleDragOver = (e) => {
+		e.preventDefault();
+	};
+	const handleDrop = (e) => {
+		e.preventDefault();
+		const fileList = Array.from(e.dataTransfer.files);
+		setMessageImgs(fileList, ...messageImgs);
+	};
+
+	const handleRemoveFile = (index) => {
+		const updatedFiles = [...messageImgs];
+		updatedFiles.splice(index, 1);
+		setMessageImgs(updatedFiles);
+	};
+	//
+	//
+	// khu vực xử lý gửi tin nhắn
 	const handleOnSubmit = async () => {
 		try {
 			setIsLoading(true); // Bắt đầu quá trình loading
@@ -249,20 +271,13 @@ export default function ChatWindow() {
 				setInputValue("");
 			}
 		} catch (error) {
+			message.error("send message fail");
 			console.error("Error adding document: ", error);
 		} finally {
-			setIsLoading(false); // Kết thúc quá trình loading, dù thành công hay không
+			setIsLoading(false);
 		}
 	};
-
-	const handleUploadChange = (event) => {
-		setIsLoading(true);
-		const fileList = Array.from(event.target.files);
-		setMessageImgs(fileList, ...messageImgs);
-		event.target.value = null;
-		setIsLoading(false);
-	};
-
+	// lập điều kiện để tải tin nhắn
 	const condition = useMemo(
 		() => ({
 			fieldName: "roomId",
@@ -271,35 +286,18 @@ export default function ChatWindow() {
 		}),
 		[selectedRoom?.id],
 	);
-
+	// Gọi tin nhăn ra để hiển thị
 	const messages = useFirestore("messages", condition);
 
-	useLayoutEffect(() => {
-		messageListRef.current?.scrollIntoView({
-			behavior: "smooth",
-			block: "end",
-		});
-	}, [messages, selectedRoom, inputValue]);
-
-	const handleDragOver = (e) => {
-		e.preventDefault();
-	};
-	const handleDrop = (e) => {
-		e.preventDefault();
-		const fileList = Array.from(e.dataTransfer.files);
-		setMessageImgs(fileList, ...messageImgs);
-	};
-
-	const handleRemoveFile = (index) => {
-		const updatedFiles = [...messageImgs];
-		updatedFiles.splice(index, 1);
-		setMessageImgs(updatedFiles);
-	};
 	const handleContextMenu = (e, message) => {
 		e.preventDefault();
 		setSelectedMessage(message);
 	};
-
+	//
+	//
+	//
+	//
+	// Xử lý xóa tin nhắn
 	const handleDeleteMessage = async () => {
 		try {
 			setIsLoading(true);
@@ -327,7 +325,9 @@ export default function ChatWindow() {
 			setIsLoading(false);
 		}
 	};
-
+	//
+	//
+	//
 	// khu vực hàm xử lý việc edit messages
 	const handleEditMessage = () => {
 		setIsOpenModalEditMessage(true);
@@ -355,13 +355,10 @@ export default function ChatWindow() {
 		setSelectedMessage(null);
 		setIsOpenModalEditMessage(false);
 	};
-
-	useEffect(() => {
-		if (isOpenModalEditMessage && inputNewMessageRef?.current) {
-			inputNewMessageRef?.current.focus();
-		}
-	}, [isOpenModalEditMessage]);
-
+	//
+	//
+	//
+	// Xử lý lưu hình ảnh
 	const handleSaveImg = async () => {
 		if (!selectedMessage || !selectedMessage.img) {
 			message.error("Không có hình ảnh để lưu.");
@@ -379,7 +376,9 @@ export default function ChatWindow() {
 		link.click();
 		document.body.removeChild(link);
 	};
-
+	//
+	//
+	//
 	// mở Modal Edit Info Room
 	const handleEidInfoRoom = () => {
 		setIsEditInfoRoomOpen(true);
@@ -409,6 +408,42 @@ export default function ChatWindow() {
 			</Menu.Item>
 		</Menu>
 	);
+	//*************************************************** */
+	//*************************************************** */
+	//*************************************************** */
+	// khu vực xử lý useEffect
+	useEffect(() => {
+		const handleKeyDown = (event) => {
+			if (event.keyCode === 27 && !isLoading) {
+				handleSetStationUInput();
+				handleModalEditMessageCancel();
+			}
+		};
+
+		if (!isInputDefault || !isLoading) {
+			document.addEventListener("keydown", handleKeyDown);
+		}
+
+		return () => {
+			document.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [isInputDefault, isLoading]);
+
+	useLayoutEffect(() => {
+		messageListRef.current?.scrollIntoView({
+			behavior: "smooth",
+			block: "end",
+		});
+	}, [messages, selectedRoom, inputValue]);
+
+	useEffect(() => {
+		if (isOpenModalEditMessage && inputNewMessageRef?.current) {
+			inputNewMessageRef?.current.focus();
+		}
+	}, [isOpenModalEditMessage]);
+
+	//*************************************************** */
+	//*************************************************** */
 
 	return (
 		<WrapperStyled>

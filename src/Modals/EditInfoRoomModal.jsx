@@ -7,7 +7,7 @@ import {
 	ref,
 	uploadBytes,
 } from "firebase/storage";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { v4 } from "uuid";
 import avtRoomDefault from "../../public/roomDefualt.svg";
 import { AppContext } from "../context/AppProvider";
@@ -25,6 +25,7 @@ export default function EditInfoRoomModal() {
 	const uid = currentUser?.uid;
 	const [isLoading, setIsLoading] = useState(false);
 	const [form] = Form.useForm();
+	const fileInputRef = useRef();
 	// Xử lý hàm handleOk
 	const handleOk = async () => {
 		try {
@@ -86,13 +87,15 @@ export default function EditInfoRoomModal() {
 		return () => {
 			avatar && URL.revokeObjectURL(avatar.preview);
 		};
-	});
+	}, [avatar]);
 
 	// Xử lý hàm handlePreviewAvatarRoom
 	const handlePreviewAvatarRoom = (e) => {
+		console.log("222");
 		const file = e.target.files[0];
+
 		file.preview = URL.createObjectURL(file);
-		console.log("filePreview", file.preview);
+		// e.target.value = null;
 		setAvatar(file);
 	};
 	return (
@@ -115,16 +118,17 @@ export default function EditInfoRoomModal() {
 							style={{ width: "100px", height: "100px" }}
 							src={avatar.preview}
 						/>
-						<Input
+						<input
 							style={{ display: "none" }}
 							type='file'
+							ref={fileInputRef}
 							accept='.png,.jpg,.jpeg,.gif'
 							onChange={handlePreviewAvatarRoom}
 							id='file'
 						/>
 						<div style={{ marginTop: "10px" }}>
 							<Button
-								onClick={() => document.getElementById("file").click()}
+								onClick={() => fileInputRef.current.click()}
 								icon={<UploadOutlined />}>
 								Chọn ảnh
 							</Button>

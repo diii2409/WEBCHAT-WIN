@@ -64,13 +64,17 @@ export default function RoomList() {
 	const {
 		currentUser: { uid },
 	} = useContext(AuthContext);
-
+	//*************************************************** */
 	const [selectedRoom, setSelectedRoom] = useState(null);
 	const [isModalConfirmDeleteRoom, setIsModalConfirmDeleteRoom] =
 		useState(false);
 	const [isModalConfirmLeaveRoom, setIsModalConfirmLeaveRoom] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
-
+	//*************************************************** */
+	//*************************************************** */
+	//
+	//
+	//
 	// khu vực xử lý delete room
 	const handleDeleteRoom = () => {
 		setIsModalConfirmDeleteRoom(true);
@@ -112,7 +116,10 @@ export default function RoomList() {
 		setSelectedRoom(null);
 		setIsModalConfirmDeleteRoom(false);
 	};
-
+	//
+	//
+	//
+	//
 	//khu vực xử lý ra khỏi phòng
 	const handleLeaveRoom = () => {
 		if (selectedRoom?.members.length > 1) {
@@ -144,6 +151,10 @@ export default function RoomList() {
 		setSelectedRoom(null);
 		setIsModalConfirmLeaveRoom(false);
 	};
+	//
+	//
+	//
+	//
 	// khu vực xử lý menu chuột phải
 	const handleContextMenu = (e, room) => {
 		e.preventDefault();

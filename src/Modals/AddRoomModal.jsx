@@ -1,7 +1,7 @@
 import { UploadOutlined } from "@ant-design/icons";
 import { Avatar, Button, Form, Input, Modal, message } from "antd";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { v4 } from "uuid";
 import avtRoomDefault from "../../public/roomDefualt.svg";
 import { AppContext } from "../context/AppProvider";
@@ -16,7 +16,7 @@ export default function AddRoomModal() {
 	const [isLoading, setIsLoading] = useState(false);
 	const uid = currentUser?.uid;
 	const [form] = Form.useForm();
-
+	const fileInputRef = useRef();
 	// Xử lý hàm handleOk
 	const handleOk = async () => {
 		try {
@@ -70,13 +70,15 @@ export default function AddRoomModal() {
 		return () => {
 			avatar && URL.revokeObjectURL(avatar.preview);
 		};
-	});
+	}, [avatar]);
 
 	// Xử lý hàm handlePreviewAvatarRoom
 	const handlePreviewAvatarRoom = (e) => {
+		console.log("1111");
 		const file = e.target.files[0];
 
 		file.preview = URL.createObjectURL(file);
+		// e.target.value = null;
 		setAvatar(file);
 	};
 
@@ -100,16 +102,17 @@ export default function AddRoomModal() {
 							style={{ width: "100px", height: "100px" }}
 							src={avatar.preview}
 						/>
-						<Input
+						<input
 							style={{ display: "none" }}
 							type='file'
+							ref={fileInputRef}
 							accept='.png,.jpg,.jpeg,.gif'
 							onChange={handlePreviewAvatarRoom}
 							id='file'
 						/>
 						<div style={{ marginTop: "10px" }}>
 							<Button
-								onClick={() => document.getElementById("file").click()}
+								onClick={() => fileInputRef.current.click()}
 								icon={<UploadOutlined />}>
 								Chọn ảnh
 							</Button>
