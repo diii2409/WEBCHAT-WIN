@@ -16,6 +16,7 @@ import {
 	Tooltip,
 	message,
 } from "antd";
+import { zhCN } from "date-fns/locale";
 import {
 	Timestamp,
 	addDoc,
@@ -158,6 +159,7 @@ export default function ChatWindow() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [selectedMessage, setSelectedMessage] = useState(null);
 	const [isOpenModalEditMessage, setIsOpenModalEditMessage] = useState(false);
+	const [isUploadingFile, setIsUploadingFile] = useState([]);
 	//*************************************************** */
 	const messageListRef = useRef(null);
 	const inputRef = useRef();
@@ -187,6 +189,7 @@ export default function ChatWindow() {
 		// 	console.log("fileType", fileName);
 		// });
 		setMessageFiles(fileList, ...messageFiles);
+		setIsUploadingFile(fileList, ...messageFiles);
 		event.target.value = null;
 		setIsLoading(false);
 	};
@@ -201,12 +204,14 @@ export default function ChatWindow() {
 		e.preventDefault();
 		const fileList = Array.from(e.dataTransfer.files);
 		setMessageFiles(fileList, ...messageFiles);
+		setIsUploadingFile(fileList, ...messageFiles);
 	};
 
 	const handleRemoveFile = (index) => {
 		const updatedFiles = [...messageFiles];
 		updatedFiles.splice(index, 1);
 		setMessageFiles(updatedFiles);
+		setIsUploadingFile(updatedFiles);
 	};
 	//
 	//
@@ -216,6 +221,7 @@ export default function ChatWindow() {
 	const uploadFile = async (messageFiles) => {
 		try {
 			const messFiles = messageFiles;
+			let uploadingFile = messageFiles;
 			setMessageFiles([]);
 			const uploadPromises = messFiles.map(async (messageFile) => {
 				// Xử lý tải file
@@ -227,10 +233,10 @@ export default function ChatWindow() {
 				const timestamp = Timestamp.now();
 				const storageRef = ref(storage, `MessageFiles/${fileID}`);
 				const uploadTask = uploadBytesResumable(storageRef, messageFile);
-
 				// Chờ cho quá trình tải lên hoàn thành
 				await uploadTask;
-
+				uploadingFile = uploadingFile.filter((item) => item !== messageFile);
+				setIsUploadingFile(uploadingFile);
 				// Trả về URL của file đã tải lên
 				return getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => ({
 					fileURL: downloadURL,
@@ -255,6 +261,7 @@ export default function ChatWindow() {
 		try {
 			// Nếu có tin nhắn văn bản, gửi nó đi
 			setInputValue("");
+			zhCN;
 			form.resetFields(["message"]);
 			if (text.trim() !== "") {
 				await addDoc(collection(db, "messages"), {
@@ -650,7 +657,7 @@ export default function ChatWindow() {
 										Chọn file
 									</Button>
 									<div style={{ marginLeft: "10px" }}>
-										{messageFiles?.map((file, index) => (
+										{isUploadingFile?.map((file, index) => (
 											<div
 												key={index}
 												style={{ display: "flex", alignItems: "center" }}>
@@ -665,12 +672,14 @@ export default function ChatWindow() {
 													{"  "}
 													{file?.name}
 												</span>
-												<Button
-													type='link'
-													onClick={() => handleRemoveFile(index)}
-													icon={<DeleteOutlined />}
-													style={{ marginLeft: "auto" }}
-												/>
+												{!isLoading && (
+													<Button
+														type='link'
+														onClick={() => handleRemoveFile(index)}
+														icon={<DeleteOutlined />}
+														style={{ marginLeft: "auto" }}
+													/>
+												)}
 											</div>
 										))}
 									</div>
