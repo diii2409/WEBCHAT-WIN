@@ -59,7 +59,7 @@ const HeaderStyled = styled.div`
 	padding: 0 16px;
 	align-items: center;
 	border-bottom: 1px solid rgb(230, 230, 230);
-
+	box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
 	.header {
 		&__info_avt {
 			display: flex;
@@ -121,7 +121,7 @@ const FormStyled = styled(Form)`
 	padding: 2px 2px 2px 0;
 	border: 1px solid rgb(230, 230, 230);
 	border-radius: 2px;
-
+	border-color: #fff;
 	.ant-form-item {
 		margin-bottom: 0;
 		margin-right: 8px;
