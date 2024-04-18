@@ -201,38 +201,36 @@ export default function RoomList() {
 				<PanelStyled header='Danh sách các phòng' key={1}>
 					{rooms.map((room, index) => {
 						return (
-							<>
-								<div
-									key={index}
-									onContextMenu={(e) => handleContextMenu(e, room)}>
-									<Dropdown overlay={contextMenu} trigger={["contextMenu"]}>
-										<>
-											<LinkStyled
-												style={{
-													color: "white",
-												}}
-												onClick={() => {
-													setIsSelectedRoomId(room.id);
-												}}>
-												<Avatar
-													style={{ marginRight: "10px" }}
-													src={
-														room?.avatar === "default"
-															? avatarDefault
-															: room?.avatar
-													}
-												/>
-												{room.name}
-											</LinkStyled>
-											<p
-												style={{
-													width: "100%",
-													border: "1px solid rgb(255, 255, 255,0.5)",
-												}}></p>
-										</>
-									</Dropdown>
-								</div>
-							</>
+							<div
+								key={index}
+								onContextMenu={(e) => handleContextMenu(e, room)}>
+								<Dropdown overlay={contextMenu} trigger={["contextMenu"]}>
+									<div>
+										<LinkStyled
+											style={{
+												color: "white",
+											}}
+											onClick={() => {
+												setIsSelectedRoomId(room.id);
+											}}>
+											<Avatar
+												style={{ marginRight: "10px" }}
+												src={
+													room?.avatar === "default"
+														? avatarDefault
+														: room?.avatar
+												}
+											/>
+											{room.name}
+										</LinkStyled>
+										<p
+											style={{
+												width: "100%",
+												border: "1px solid rgb(255, 255, 255,0.5)",
+											}}></p>
+									</div>
+								</Dropdown>
+							</div>
 						);
 					})}
 					<Button
