@@ -105,7 +105,9 @@ export default function AddRoomModal() {
 				open={isAddRoomVisible}
 				closable={false}
 				onOk={handleOk}
-				onCancel={handleCancel}>
+				onCancel={handleCancel}
+				okButtonProps={{ disabled: isLoading }}
+				destroyOnClose={true}>
 				<Form form={form} layout='vertical' disabled={isLoading}>
 					<Form.Item
 						label={
