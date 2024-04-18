@@ -477,6 +477,11 @@ export default function ChatWindow() {
 			if (event.keyCode === 27) {
 				handleSetStationUInput();
 				handleModalEditMessageCancel();
+				if (inputRef?.current) {
+					setTimeout(() => {
+						inputRef.current.focus();
+					});
+				}
 			}
 		};
 
@@ -487,7 +492,7 @@ export default function ChatWindow() {
 		return () => {
 			document.removeEventListener("keydown", handleKeyDown);
 		};
-	}, [isInputDefault, isLoading]);
+	}, [isInputDefault]);
 
 	useLayoutEffect(() => {
 		messageListRef.current?.scrollIntoView({
