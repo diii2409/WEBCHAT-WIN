@@ -23,7 +23,7 @@ import {
 import { deleteObject, ref } from "firebase/storage";
 import { useContext, useState } from "react";
 import styled from "styled-components";
-import avatarDefault from "../../../public/vite.svg";
+import avatarDefault from "../../../public/roomDefault.svg";
 import { AppContext } from "../../context/AppProvider";
 import { AuthContext } from "../../context/AuthContext";
 import { db, storage } from "../../firebase/config";
@@ -53,7 +53,7 @@ const LinkStyled = styled(Link)`
 	margin-bottom: 5px;
 	color: white;
 	&:hover {
-		background-color: #f0f0f0;
+		background-color: rgba(240, 240, 240, 0.5);
 	}
 	border-radius: 8px;
 `;
@@ -206,6 +206,9 @@ export default function RoomList() {
 								onContextMenu={(e) => handleContextMenu(e, room)}>
 								<Dropdown overlay={contextMenu} trigger={["contextMenu"]}>
 									<LinkStyled
+										style={{
+											color: "white",
+										}}
 										onClick={() => {
 											setIsSelectedRoomId(room.id);
 										}}>

@@ -9,7 +9,7 @@ import {
 } from "firebase/storage";
 import { useContext, useEffect, useRef, useState } from "react";
 import { v4 } from "uuid";
-import avtRoomDefault from "../../public/roomDefualt.svg";
+import avtRoomDefault from "../../public/roomDefault.svg";
 import { AppContext } from "../context/AppProvider";
 import { AuthContext } from "../context/AuthContext";
 import { db, storage } from "../firebase/config";
@@ -21,9 +21,8 @@ export default function EditInfoRoomModal() {
 	const [avatar, setAvatar] = useState({
 		preview: avtRoomDefault,
 	});
-	const [avatarExtension, setAvatarExtension] = useState("");
+
 	const [erroravatarExtension, setErrorAvatarExtension] = useState(false);
-	const extensionFileImG = ["jpg", "png", "gif", "jpeg"];
 	const currentUser = useContext(AuthContext).currentUser;
 	const uid = currentUser?.uid;
 	const [isLoading, setIsLoading] = useState(false);

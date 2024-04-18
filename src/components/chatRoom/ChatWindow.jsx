@@ -1,5 +1,6 @@
 import {
 	DeleteOutlined,
+	SendOutlined,
 	UploadOutlined,
 	UserAddOutlined,
 } from "@ant-design/icons";
@@ -43,7 +44,7 @@ import {
 } from "react";
 import styled from "styled-components";
 import { v4 } from "uuid";
-import avatarDefault from "../../../public/vite.svg";
+import avatarDefault from "../../../public/roomDefault.svg";
 import { AppContext } from "../../context/AppProvider";
 import { AuthContext } from "../../context/AuthContext";
 import { db, storage } from "../../firebase/config";
@@ -619,7 +620,7 @@ export default function ChatWindow() {
 								hidden={!isInputDefault}>
 								<Input
 									ref={inputRef}
-									placeholder='nhập tin nhắn đi ku'
+									placeholder='nhập tin nhắn...'
 									variant={false}
 									autoFocus={true}
 									// disabled={isLoading}
@@ -695,7 +696,7 @@ export default function ChatWindow() {
 								type='primary'
 								// disabled={isLoading}
 								onClick={handleOnSubmit}>
-								Gửi
+								<SendOutlined />
 							</Button>
 						</FormStyled>
 					</ContentStyled>

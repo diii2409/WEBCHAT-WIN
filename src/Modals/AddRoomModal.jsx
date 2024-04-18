@@ -3,7 +3,7 @@ import { Avatar, Button, Form, Input, Modal, message } from "antd";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { useContext, useEffect, useRef, useState } from "react";
 import { v4 } from "uuid";
-import avtRoomDefault from "../../public/roomDefualt.svg";
+import avtRoomDefault from "../../public/roomDefault.svg";
 import { AppContext } from "../context/AppProvider";
 import { AuthContext } from "../context/AuthContext";
 import { storage } from "../firebase/config";
