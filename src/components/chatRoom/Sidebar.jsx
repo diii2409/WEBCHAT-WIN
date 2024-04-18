@@ -1,10 +1,10 @@
 import { Col, Row } from "antd";
-import UserInfo from "./UserInfo";
-import RoomList from "./RoomList";
 import styled from "styled-components";
+import RoomList from "./RoomList";
+import UserInfo from "./UserInfo";
 
 const SidebarStyled = styled.div`
-	background: #3f0e40;
+	background: rgb(32, 98, 119);
 	color: white;
 	height: 100vh;
 `;

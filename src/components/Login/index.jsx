@@ -1,20 +1,31 @@
 // import React from "react";
-import { useNavigate } from "react-router-dom"; // Sử dụng useNavigate thay vì useHistory
+import { Button, Col, Row, Typography } from "antd";
 import {
-	signInWithPopup,
-	GoogleAuthProvider,
 	FacebookAuthProvider,
+	GoogleAuthProvider,
 	getAdditionalUserInfo,
+	signInWithPopup,
 } from "firebase/auth";
-import { db, auth } from "../../firebase/config";
-import { addDoc, collection } from "firebase/firestore";
-import { Row, Col, Button, Typography } from "antd";
+import { useNavigate } from "react-router-dom"; // Sử dụng useNavigate thay vì useHistory
+import styled from "styled-components";
+import chatIcon from "../../../public/chatIcon.svg";
+import facebookIcon from "../../../public/facebook.svg";
+import googleIcon from "../../../public/google.svg";
+import { auth } from "../../firebase/config";
 import { addDocument, generateKeywords } from "../../firebase/service";
 
 const { Title } = Typography;
 
 const fbProvider = new FacebookAuthProvider();
 const googleProvider = new GoogleAuthProvider();
+
+const ContainerLoginStyled = styled.div`
+	height: 100%;
+	width: 100%;
+	display: flex;
+	margin: auto;
+	background: linear-gradient(45deg, rgb(9, 132, 184), rgb(145, 222, 221));
+`;
 
 export default function Login() {
 	const navigate = useNavigate(); // Sử dụng useNavigate
@@ -46,24 +57,85 @@ export default function Login() {
 	};
 
 	return (
-		<div>
-			<Row justify='center' style={{ height: 800 }}>
-				<Col span={8}>
-					<Title style={{ textAlign: "center" }} level={3}>
-						WIN CHAT
-					</Title>
+		<ContainerLoginStyled>
+			<Row
+				className='container__login'
+				style={{
+					display: "flex",
+					justifyContent: "center",
+					alignItems: "center",
+					width: "100%",
+				}}>
+				<Col
+					span={4}
+					style={{
+						background: "white",
+						padding: "12px",
+						borderRadius: "10px",
+						boxShadow: "10px 10px #2d92d1",
+					}}>
+					<img
+						src={chatIcon}
+						style={{
+							width: "85px",
+							display: "flex",
+							margin: "auto",
+							borderRadius: "15px",
+							boxShadow: "4px 4px #ade8f4",
+						}}
+					/>
+					<Title style={{ textAlign: "center", color: "" }} level={4}></Title>
 					<Button
-						style={{ width: "100%", marginBottom: 5 }}
+						style={{
+							width: "85%",
+							display: "flex",
+							margin: "auto",
+						}}
 						onClick={() => handleLogin(googleProvider)}>
-						Đăng nhập bằng Google
+						<img
+							src={googleIcon}
+							width='22px'
+							style={{
+								display: "inline-block",
+								marginRight: "12px",
+							}}
+						/>
+						<p
+							style={{
+								whiteSpace: "nowrap",
+								overflow: "hidden",
+								textOverflow: "ellipsis",
+							}}>
+							Đăng nhập bằng Google
+						</p>
 					</Button>
+					<Title style={{ textAlign: "center", color: "" }} level={4}></Title>
 					<Button
-						style={{ width: "100%" }}
+						style={{
+							width: "85%",
+							display: "flex",
+							margin: "auto",
+						}}
 						onClick={() => handleLogin(fbProvider)}>
-						Đăng nhập bằng Facebook
+						<img
+							src={facebookIcon}
+							width='22px'
+							style={{
+								display: "inline-block",
+								marginRight: "12px",
+							}}
+						/>
+						<p
+							style={{
+								whiteSpace: "nowrap",
+								overflow: "hidden",
+								textOverflow: "ellipsis",
+							}}>
+							Đăng nhập bằng Facebook
+						</p>
 					</Button>
 				</Col>
 			</Row>
-		</div>
+		</ContainerLoginStyled>
 	);
 }
